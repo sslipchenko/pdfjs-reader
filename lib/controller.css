@@ -1,0 +1,274 @@
+:root {
+  --main-color: var(--vscode-foreground);
+  --body-bg-color: var(--vscode-editor-background);
+
+  /* buttons */
+  --button-background-color: var(--vscode-button-background);
+  --button-background-color-active: var(--vscode-button-background); /* no match */
+  --button-background-color-disabled: var(--vscode-button-background); /* no match */
+  --button-background-color-hover: var(--vscode-button-hoverBackground);
+  --button-hover-color: var(--vscode-button-foreground); /* no match */
+  --button-primary-bg-color: var(--vscode-button-background);
+  --button-primary-border-color: unset; /* no match */
+  --button-primary-fg-color: var(--vscode-button-foreground);
+  --button-primary-hover-bg-color: var(--vscode-button-hoverBackground);
+  --button-primary-hover-border-color: unset; /* no match */
+  --button-primary-hover-fg-color: var(--vscode-button-foreground); /* no match */
+  --button-secondary-bg-color: var(--vscode-button-secondaryBackground);
+  --button-secondary-border-color: unset; /* no match */
+  --button-secondary-fg-color: var(--vscode-button-secondaryForeground);
+  --button-secondary-hover-bg-color: var(--vscode-button-secondaryHoverBackground);
+  --button-secondary-hover-border-color: unset; /* no match */
+  --button-secondary-hover-fg-color: var(--vscode-button-secondaryForeground); /* no match */
+
+  /* dialog */
+  --dialog-bg-color: var(--vscode-panel-background);
+  --dialog-border-color: var(--vscode-panel-border);
+  --dialog-button-bg-color: var(--vscode-button-background);
+  --dialog-button-border: unset; /* no match */
+  --dialog-button-hover-bg-color: var(--vscode-button-hoverBackground);
+  --dialog-button-hover-color: var(--vscode-button-foreground); /* no match */
+  --dialog-shadow: none;
+
+  --divider-color: var(--vscode-menu-separatorBackground);
+
+  /* doorhanger */
+  --doorhanger-bg-color: var(--vscode-editorWidget-background);
+  --doorhanger-border-color: var(--vscode-editorWidget-border);
+  --doorhanger-hover-bg-color: var(--vscode-menu-selectionBackground);
+  --doorhanger-hover-color: var(--vscode-menu-selectionForeground);
+  --doorhanger-icon-opacity: 1.0;
+  --doorhanger-separator-color: var(--vscode-menu-separatorBackground);
+
+  /* dropdown */
+  --dropdown-btn-bg-color: var(--vscode-button-background);
+  --dropdown-btn-border: none; /* no match */
+
+  /* editor */
+  --editor-toolbar-bg-color: var(--vscode-panel-background);
+  --editor-toolbar-border-color: var(--vscode-panel-border);
+  --editor-toolbar-fg-color: var(--vscode-foreground);
+  --editor-toolbar-hover-bg-color: var(--vscode-panel-background);
+  --editor-toolbar-hover-border-color: var(--vscode-panel-border);
+  --editor-toolbar-hover-fg-color: var(--vscode-foreground);
+
+  /* field */
+  --field-bg-color: var(--vscode-input-background);
+  --field-border-color: unset; /* no match */
+  --field-color: var(--vscode-input-foreground);
+
+  /*
+  --focus-outline
+  --focus-outline-around
+  --focus-outline-offset
+  --focus-ring-color
+  --focus-ring-outline
+  --freetext-line-height
+  --freetext-padding
+  --hcm-highlight-filter
+  --hcm-highlight-selected-filter
+  --highlight-backdrop-filter
+  --highlight-bg-color
+  --highlight-selected-backdrop-filter
+  --highlight-selected-bg-color
+  --hover-filter
+  --hover-outline
+  --hover-outline-around
+  --hover-outline-around-color
+  --hover-outline-color
+  --icon-size
+  --inline-end
+  --inline-start
+  --input-disabled-border-color
+  --input-focus-border-color
+  --input-focus-outline
+  --input-horizontal-padding
+  --input-hover-border-color
+  --input-unfocused-border-color
+  --link-fg-color
+  --link-hover-fg-color
+  --link-outline
+  --loading-icon-delay
+  */
+
+  --message-bar-bg-color: var(--vscode-panel-background);
+  --message-bar-border-color: var(--vscode-panel-border);
+  --message-bar-close-button-active-bg-color: var(--vscode-button-background);
+  /* --message-bar-close-button-border
+  --message-bar-close-button-border-radius */
+  --message-bar-close-button-color: var(--vscode-button-foreground);
+  --message-bar-close-button-color-hover: var(--vscode-button-hoverBackground);
+  --message-bar-close-button-focus-bg-color: var(--vscode-button-background);
+  --message-bar-close-button-hover-bg-color: var(--vscode-button-background);
+  --message-bar-fg-color: var(--vscode-descriptionForeground);
+  --message-bar-icon-color: var(--vscode-icon-foreground);
+  /*
+  --new-alt-text-warning-image
+  --no-alt-text-badge-bg-color
+  --no-alt-text-badge-border-color
+  --no-alt-text-badge-fg-color
+  --outline-around-color
+  --outline-around-width
+  --outline-color
+  --outline-width
+  --page-bg-color
+  --page-border
+  --page-margin
+  --pdfViewer-padding-bottom
+  --preview-image-bg-color
+  --preview-image-border
+  */
+  --progressBar-bg-color: var(--vscode-editor-background);
+  --progressBar-color: var(--vscode-progressBar-background);
+  /*
+  --radio-bg-color
+  --radio-border-color
+  --radio-checked-bg-color
+  --radio-checked-border-color
+  --resizer-bg-color
+  --resizer-shift
+  --resizer-size
+  --scale-factor
+  --scale-round-x
+  --scale-round-y
+  --scrollbar-bg-color
+  --scrollbar-color
+  --selected-outline-color
+  */
+  --separator-color: var(--vscode-menu-separatorBackground);
+  --sidebar-narrow-bg-color: var(--vscode-panel-background);
+  --sidebar-toolbar-bg-color: var(--vscode-panel-background);
+
+  /*
+  --swatch-border-color
+  */
+  --text-primary-color: var(--vscode-foreground);
+  --text-secondary-color: var(--vscode-descriptionForeground);
+
+  /* textarea */
+  --textarea-bg-color: var(--vscode-input-background);
+  --textarea-border-color: unset; /* no match */
+  --textarea-fg-color: var(--vscode-input-foreground);
+
+  --thumbnail-hover-color: var(--vscode-list-hoverBackground);
+  --thumbnail-selected-color: var(--vscode-list-activeSelectionBackground);
+
+  /* toggle */
+  --toggle-background-color: var(--vscode-button-secondaryForeground);
+  --toggle-background-color-active: var(--vscode-button-secondaryForeground);
+  --toggle-background-color-disabled: var(--vscode-button-secondaryForeground);
+  --toggle-background-color-hover: var(--vscode-button-secondaryHoverBackground);
+  --toggle-background-color-pressed: var(--vscode-button-background);
+  --toggle-background-color-pressed-active: var(--vscode-button-background); /* no match */
+  --toggle-background-color-pressed-hover: var(--vscode-button-hoverBackground);
+  --toggle-border-color: unset; /* no match */
+  --toggle-border-color-active: unset; /* no match */
+  --toggle-border-color-disabled: unset; /* no match */
+  --toggle-border-color-hover: unset; /* no match */
+
+  /*
+  --toggle-dot-background-color
+  --toggle-dot-background-color-active
+  --toggle-dot-background-color-hover
+  --toggle-dot-background-color-on-pressed
+  --toggle-dot-height
+  --toggle-dot-margin
+  --toggle-dot-transform-x
+  --toggle-dot-width
+  --toggle-height
+  --toggle-width
+  */
+
+  --toggled-btn-bg-color: var(--vscode-button-background);
+  --toggled-btn-color: var(--vscode-button-foreground);
+  --toggled-hover-active-btn-color: var(--vscode-button-foreground); /* no match */
+
+  /* toolbar */
+  --toolbar-bg-color: var(--vscode-editorWidget-background);
+  --toolbar-border-color: var(--vscode-editorWidget-border);
+  --toolbar-icon-bg-color: var(--vscode-button-secondaryForeground);
+  --toolbar-icon-hover-bg-color: var(--vscode-button-hoverBackground);
+
+  /* tree item */
+  --treeitem-bg-color: var(--vscode-button-secondaryBackground); /* no match */
+  --treeitem-color: var(--vscode-foreground);
+  --treeitem-hover-color: var(--vscode-button-foreground);
+  --treeitem-selected-bg-color: var(--vscode-button-background);
+  --treeitem-selected-color: var(--vscode-button-foreground);
+
+  /* undo button */
+  --undo-button-bg-color: var(--vscode-button-secondaryBackground);
+  --undo-button-bg-color-active: var(--vscode-button-secondaryBackground); /* no match */
+  --undo-button-bg-color-hover: var(--vscode-button-secondaryHoverBackground);
+  --undo-button-fg-color: var(--vscode-button-secondaryForeground);
+  --undo-button-fg-color-active: var(--vscode-button-secondaryForeground); /* no match */
+  --undo-button-fg-color-hover: var(--vscode-button-secondaryForeground); /* no match */
+}
+
+#outerContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+div:has(> #printButton),
+div:has(> #printButton) + .verticalToolbarSeparator,
+#secondaryOpenFile,
+div:has(> #secondaryPrint),
+div:has(> #secondaryPrint) + .horizontalToolbarSeparator {
+  display: none;
+}
+
+.toolbarButton, .toolbarField {
+  font-family: var(--vscode-font-family) !important;
+  font-size: var(--vscode-font-size) !important;
+  font-weight: var(--vscode-font-weight) !important;
+}
+
+:is(.dropdownToolbarButton > select):is(:hover,:focus-visible){
+  background-color: var(--button-primary-hover-bg-color);
+  color: var(--button-primary-fg-color);
+}
+
+#editorUndoBar {
+  --text-primary-color: var(--vscode-foreground);
+
+  --message-bar-icon-color: var(--vscode-icon-foreground);
+  --message-bar-bg-color: var(--vscode-panel-background);
+  --message-bar-fg-color: var(--vscode-foreground);
+  --message-bar-border-color: var(--vscode-panel-border);
+
+  --undo-button-bg-color: var(--vscode-button-secondaryBackground);
+  --undo-button-bg-color-hover: var(--vscode-button-secondaryHoverBackground);
+  --undo-button-bg-color-active: var(--vscode-button-secondaryBackground);
+
+  --undo-button-fg-color: var(--vscode-button-secondaryForeground);
+  --undo-button-fg-color-hover: var(--vscode-button-secondaryForeground);
+  --undo-button-fg-color-active: var(--vscode-button-secondaryForeground);
+}
+
+:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor),.textLayer) .editToolbar{
+  --editor-toolbar-bg-color: var(--vscode-panel-background);
+  --editor-toolbar-fg-color: var(--vscode-foreground);
+  --editor-toolbar-border-color: var(--vscode-panel-border);
+  --editor-toolbar-hover-border-color: var(--vscode-panel-border);
+  --editor-toolbar-hover-bg-color: var(--vscode-toolbar-hoverBackground);
+  --editor-toolbar-hover-fg-color: var(--vscode-foreground);
+}
+
+:is(#findbar #findbarMessageContainer) #findResultsCount{
+  background-color: var(--vscode-editorWidget-background);
+  color: var(--vscode-editorWidget-foreground);
+}
+
+#findBar .toggleButton {
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}
+
+.toggleButton:is(:hover,:has( > input:focus-visible)){
+  color: var(--vscode-button-background); */
+  background-color:var(--button-hover-color);
+}
