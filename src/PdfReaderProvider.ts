@@ -89,23 +89,26 @@ class PdfDocument extends Disposable implements vscode.CustomDocument {
 
 export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocument> {
     private static readonly viewType = 'pdfjsReader.pdfReader';
+    private _viewerHtml: string | undefined;
 
-    public static register(context: vscode.ExtensionContext): vscode.Disposable {
-        return vscode.window.registerCustomEditorProvider(
+    public static register(context: vscode.ExtensionContext) {
+        const provider = new PdfReaderProvider(context);
+
+        // register PDF editor provider
+        context.subscriptions.push(vscode.window.registerCustomEditorProvider(
             PdfReaderProvider.viewType,
-            new PdfReaderProvider(context),
+            provider,
             {
-                // For this demo extension, we enable `retainContextWhenHidden` which keeps the
-                // webview alive even when it is not visible. You should avoid using this setting
-                // unless is absolutely required as it does have memory overhead.
                 webviewOptions: {
                     retainContextWhenHidden: true,
                 },
                 supportsMultipleEditorsPerDocument: true,
-            });
-    }
+            }));
 
-    private _viewerHtml: string | undefined;
+        // register navigation commands
+        context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.goBack", provider.goBack.bind(provider)));
+        context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.goForward", provider.goForward.bind(provider)));
+    }
 
     constructor(private readonly _context: vscode.ExtensionContext) { }
 
@@ -142,6 +145,8 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
     }
 
     private readonly webviews = new WebviewCollection();
+
+    public get activeWebview(): vscode.WebviewPanel | undefined { return this.webviews.active; }
 
     async resolveCustomEditor(document: PdfDocument, webviewPanel: vscode.WebviewPanel, _token: vscode.CancellationToken): Promise<void> {
         // Add the webview to our internal set of active webviews
@@ -201,6 +206,18 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
 
     public backupCustomDocument(document: PdfDocument, context: vscode.CustomDocumentBackupContext, cancellation: vscode.CancellationToken): Thenable<vscode.CustomDocumentBackup> {
         return document.backup(context.destination, cancellation);
+    }
+
+    public goBack() {
+        if (this.webviews.active) {
+            this.webviews.active.webview.postMessage({ type: 'navigate', body: { action: 'GoBack' } });
+        }
+    }
+
+    public goForward() {
+        if (this.webviews.active) {
+            this.webviews.active.webview.postMessage({ type: 'navigate', body: { action: 'GoForward' } });
+        }
     }
 
     private async getHtmlForWebview(webviewPanel: vscode.WebviewPanel): Promise<string> {
@@ -268,6 +285,14 @@ class WebviewCollection {
         readonly resource: string;
         readonly webviewPanel: vscode.WebviewPanel;
     }>();
+
+    public get active(): vscode.WebviewPanel | undefined {
+        for (const entry of this._webviews) {
+            if (entry.webviewPanel.active) {
+                return entry.webviewPanel;
+            }
+        }
+    }
 
     /**
      * Get all known webviews for a given uri.

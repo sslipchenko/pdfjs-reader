@@ -3,7 +3,7 @@
   "author": "Serge Slipcheko <Serge.Slipchenko@gmail.com>",
   "displayName": "PDF.js Reader",
   "description": "PDF.js document reader for VS Code",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "Apache-2.0",
   "engines": {
     "vscode": "^1.96.0"
@@ -35,6 +35,32 @@
           }
         ],
         "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "pdfjsReader.goBack",
+        "title": "Back",
+        "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.goForward",
+        "title": "Forward",
+        "category": "Reader"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "pdfjsReader.goBack",
+        "key": "ctrl+[",
+        "mac": "cmd+[",
+        "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
+      },
+      {
+        "command": "pdfjsReader.goForward",
+        "key": "ctrl+]",
+        "mac": "cmd+]",
+        "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
       }
     ]
   },
