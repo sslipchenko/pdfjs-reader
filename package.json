@@ -25,6 +25,23 @@
   },
   "main": "./dist/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "pdfjsReader.goBack",
+        "title": "Back",
+        "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.goForward",
+        "title": "Forward",
+        "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.selectSpreadMode",
+        "title": "Spread Mode",
+        "category": "Reader"
+      }
+    ],
     "customEditors": [
       {
         "viewType": "pdfjsReader.pdfReader",
@@ -37,18 +54,29 @@
         "priority": "default"
       }
     ],
-    "commands": [
-      {
-        "command": "pdfjsReader.goBack",
-        "title": "Back",
-        "category": "Reader"
+    "icons":{
+      "pdfjs-reader-spread-none": {
+        "description": "Spread None",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E001"
+        }
       },
-      {
-        "command": "pdfjsReader.goForward",
-        "title": "Forward",
-        "category": "Reader"
+      "pdfjs-reader-spread-odd": {
+        "description": "Spread Odd",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E002"
+        }
+      },
+      "pdfjs-reader-spread-even": {
+        "description": "Spread Even",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E003"
+        }
       }
-    ],
+    },
     "keybindings": [
       {
         "command": "pdfjsReader.goBack",
@@ -65,8 +93,10 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "yarn run compile",
+    "vscode:prepublish": "yarn run build",
+    "build": "yarn run compile && yarn run generate-font",
     "compile": "tsc -p ./",
+    "generate-font": "fantasticon ./icons -o ./dist -t woff2 -g css -p pdfjs-reader",
     "watch": "tsc -watch -p ./",
     "pretest": "yarn run compile && yarn run lint",
     "lint": "eslint src",
@@ -82,6 +112,7 @@
     "@vscode/test-electron": "^2.4.1",
     "@vscode/vsce": "^3.2.2",
     "eslint": "^9.19.0",
+    "fantasticon": "^3.0.0",
     "typescript": "^5.7.3"
   }
 }

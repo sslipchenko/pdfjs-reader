@@ -108,9 +108,20 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         // register navigation commands
         context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.goBack", provider.goBack.bind(provider)));
         context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.goForward", provider.goForward.bind(provider)));
+
+        // register layout commands and status bar items
+        context.subscriptions.push(vscode.commands.registerCommand(PdfReaderProvider.selectSpreadModeCommand, provider.selectSpreadMode.bind(provider)));
+        context.subscriptions.push(provider.spreadModeStatusBarItem);
     }
 
-    constructor(private readonly _context: vscode.ExtensionContext) { }
+    private static readonly selectSpreadModeCommand = "pdfjsReader.selectSpreadMode";
+    private spreadModeStatusBarItem: vscode.StatusBarItem
+
+    constructor(private readonly _context: vscode.ExtensionContext) {
+        this.spreadModeStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+        this.spreadModeStatusBarItem.command = PdfReaderProvider.selectSpreadModeCommand;
+        this.spreadModeStatusBarItem.text = "Spread Mode";
+    }
 
     async openCustomDocument(uri: vscode.Uri, openContext: { backupId?: string }, _token: vscode.CancellationToken): Promise<PdfDocument> {
         const document: PdfDocument = await PdfDocument.create(uri, openContext.backupId, {
@@ -146,8 +157,6 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
 
     private readonly webviews = new WebviewCollection();
 
-    public get activeWebview(): vscode.WebviewPanel | undefined { return this.webviews.active; }
-
     async resolveCustomEditor(document: PdfDocument, webviewPanel: vscode.WebviewPanel, _token: vscode.CancellationToken): Promise<void> {
         // Add the webview to our internal set of active webviews
         this.webviews.add(document.uri, webviewPanel);
@@ -166,12 +175,12 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         webviewPanel.webview.onDidReceiveMessage(e => this.onMessage(document, e));
 
         // Wait for the webview to be properly ready before we init
-        const onReady = webviewPanel.webview.onDidReceiveMessage(e => {
+        const onReady = webviewPanel.webview.onDidReceiveMessage(async (e) => {
             if (e.type === 'ready') {
                 // const editable = vscode.workspace.fs.isWritableFileSystem(document.uri.scheme);
                 const config = vscode.workspace.getConfiguration('pdfjs-reader');
 
-                this.postMessage(webviewPanel, 'open', {
+                const status = await this.postMessageWithResponse<Status>(webviewPanel, 'open', {
                     document: { url: webviewPanel.webview.asWebviewUri(document.dataFile).toString() },
                     cMapUrl: this.resolveAsUri(webviewPanel, 'lib', 'web', 'cmaps'),
                     standardFontDataUrl: this.resolveAsUri(webviewPanel, 'lib', 'web', 'standard_fonts'),
@@ -184,7 +193,25 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
                     }
                 });
 
+                this.updateStatusBar(status);
+
                 onReady.dispose();
+            }
+        });
+
+        webviewPanel.onDidChangeViewState(async (e) => {
+            if (e.webviewPanel.active) {
+                const status = await this.postMessageWithResponse<Status>(webviewPanel, 'status', {});
+                this.updateStatusBar(status);
+            }
+            if (!this.webviews.active) {
+                this.hideStatusBar();
+            }
+        });
+
+        webviewPanel.onDidDispose(() => {
+            if (!this.webviews.active) {
+                this.hideStatusBar();
             }
         });
     }
@@ -206,18 +233,6 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
 
     public backupCustomDocument(document: PdfDocument, context: vscode.CustomDocumentBackupContext, cancellation: vscode.CancellationToken): Thenable<vscode.CustomDocumentBackup> {
         return document.backup(context.destination, cancellation);
-    }
-
-    public goBack() {
-        if (this.webviews.active) {
-            this.webviews.active.webview.postMessage({ type: 'navigate', body: { action: 'GoBack' } });
-        }
-    }
-
-    public goForward() {
-        if (this.webviews.active) {
-            this.webviews.active.webview.postMessage({ type: 'navigate', body: { action: 'GoForward' } });
-        }
     }
 
     private async getHtmlForWebview(webviewPanel: vscode.WebviewPanel): Promise<string> {
@@ -274,6 +289,56 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
                 break;
         }
     }
+
+    private goBack() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'navigate', { action: 'GoBack' });
+        }
+    }
+
+    private goForward() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'navigate', { action: 'GoForward' });
+        }
+    }
+
+    private updateStatusBar(status: Status) {
+        this.updateSpreadMode(status.spreadMode);
+    }
+
+    private hideStatusBar() {
+        this.spreadModeStatusBarItem.hide();
+    }
+
+    private static readonly spreadModes = [
+        { id: 'none', label: "None", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-none") },
+        { id: 'odd', label: "Odd", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-odd") },
+        { id: 'even', label: "Even", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-odd") }
+    ];
+    private async selectSpreadMode() {
+        if (this.webviews.active) {
+            const spreadMode = await vscode.window.showQuickPick(PdfReaderProvider.spreadModes);
+
+            if (spreadMode) {
+                this.postMessage(this.webviews.active, 'view', { spreadMode: spreadMode.id });
+                this.updateSpreadMode(spreadMode.id as Status['spreadMode'])
+            }
+        }
+    }
+
+    private updateSpreadMode(id: Status['spreadMode']) {
+        const mode = PdfReaderProvider.spreadModes.find(m => m.id == id);
+        if (mode) {
+            this.spreadModeStatusBarItem.text = `$(${mode.iconPath.id}) ${mode.label}`;
+            this.spreadModeStatusBarItem.show();
+        } else {
+            this.spreadModeStatusBarItem.hide();
+        }
+    }
+}
+
+interface Status {
+    spreadMode?: 'none' | 'odd' | 'even';
 }
 
 /**
