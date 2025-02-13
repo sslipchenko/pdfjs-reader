@@ -341,7 +341,7 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
 
     private async selectSpreadMode() {
         if (this.webviews.active) {
-            const selected = await vscode.window.showQuickPick(PdfReaderProvider.spreadModes);
+            const selected = await vscode.window.showQuickPick(PdfReaderProvider.spreadModes, { title: "Spread Pages" });
 
             if (selected) {
                 this.postMessage(this.webviews.active, 'view', { spreadMode: selected.mode });
@@ -382,7 +382,7 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
 
     private async selectScrollMode() {
         if (this.webviews.active) {
-            const selected = await vscode.window.showQuickPick(PdfReaderProvider.scrollModes);
+            const selected = await vscode.window.showQuickPick(PdfReaderProvider.scrollModes, { title: "Scroll Mode" });
 
             if (selected) {
                 this.postMessage(this.webviews.active, 'view', { scrollMode: selected.mode });
@@ -434,7 +434,7 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         this._context.subscriptions.push(this.zoomOutStatusBarItem);
     }
 
-    private static readonly zoomModes: Array<vscode.QuickPickItem & { mode: ZoomMode }> = [
+    private static readonly zoomModes: Array<vscode.QuickPickItem & { mode: ZoomMode | undefined }> = [
         { mode: 'auto', label: "Automatic Zoom" },
         { mode: 'page-actual', label: "Actual Size" },
         { mode: 'page-width', label: "Page Width" },
@@ -445,19 +445,28 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         { mode: 1.0, label: "100%" },
         { mode: 1.25, label: "125%" },
         { mode: 1.5, label: "150%" },
-        { mode: 2.0, label: "200%" },
-        { mode: 3.0, label: "300%" },
-        { mode: 4.0, label: "400%" }
+        { mode: undefined, label: "Custom" },
+        // { mode: 2.0, label: "200%" },
+        // { mode: 3.0, label: "300%" },
+        // { mode: 4.0, label: "400%" }
     ];
 
 
     private async selectZoomMode() {
         if (this.webviews.active) {
-            const selected = await vscode.window.showQuickPick(PdfReaderProvider.zoomModes);
+            const selected = await vscode.window.showQuickPick(PdfReaderProvider.zoomModes, { title: "Zoom Mode" });
 
             if (selected) {
-                this.postMessage(this.webviews.active, 'view', { zoomMode: { scale: selected.mode } });
-                this.updateZoomMode(selected.mode);
+                if (selected.mode) {
+                    this.postMessage(this.webviews.active, 'view', { zoomMode: { scale: selected.mode } });
+                    this.updateZoomMode(selected.mode);
+                } else {
+                    const custom = Number(await vscode.window.showInputBox({ title: "Custom Zoom" })) / 100;
+                    if (!isNaN(custom)) {
+                        this.postMessage(this.webviews.active, 'view', { zoomMode: { scale: custom } });
+                        this.updateZoomMode(custom);
+                    }
+                }
             }
         }
     }
