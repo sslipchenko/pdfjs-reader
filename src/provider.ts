@@ -105,8 +105,9 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
 
     constructor(private readonly _context: vscode.ExtensionContext) {
         this.registerNavigation();
-        this.registerScrollMode();
+        this.registerZoomMode();
         this.registerSpreadMode();
+        this.registerScrollMode();
     }
 
     async openCustomDocument(uri: vscode.Uri, openContext: { backupId?: string }, _token: vscode.CancellationToken): Promise<PdfDocument> {
@@ -303,11 +304,18 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         if (status.scrollMode) {
             this.updateScrollMode(status.scrollMode);
         }
+
+        if (status.zoomMode) {
+            this.updateZoomMode(status.zoomMode);
+        }
     }
 
     private hideStatusBar() {
         this.spreadModeStatusBarItem.hide();
         this.scrollModeStatusBarItem.hide();
+        this.zoomModeStatusBarItem.hide();
+        this.zoomInStatusBarItem.hide();
+        this.zoomOutStatusBarItem.hide();
     }
 
     private static readonly selectSpreadModeCommand = "pdfjsReader.selectSpreadMode";
@@ -392,15 +400,109 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
             this.scrollModeStatusBarItem.hide();
         }
     }
+
+    private static readonly selectZoomModeCommand = "pdfjsReader.selectZoomMode";
+    private zoomModeStatusBarItem!: vscode.StatusBarItem;
+    private static readonly selectZoomInCommand = "pdfjsReader.zoomIn";
+    private zoomInStatusBarItem!: vscode.StatusBarItem;
+    private static readonly selectZoomOutCommand = "pdfjsReader.zoomOut";
+    private zoomOutStatusBarItem!: vscode.StatusBarItem;
+
+    private registerZoomMode() {
+        this.zoomModeStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 110);
+        this.zoomModeStatusBarItem.command = PdfReaderProvider.selectZoomModeCommand;
+        this.zoomModeStatusBarItem.text = "Zoom Mode";
+
+        this._context.subscriptions.push(vscode.commands.registerCommand(PdfReaderProvider.selectZoomModeCommand,
+            this.selectZoomMode.bind(this)));
+        this._context.subscriptions.push(this.zoomModeStatusBarItem);
+
+        this.zoomInStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 109);
+        this.zoomInStatusBarItem.command = PdfReaderProvider.selectZoomInCommand;
+        this.zoomInStatusBarItem.text = "$(pdfjs-reader-zoom-in)";
+
+        this._context.subscriptions.push(vscode.commands.registerCommand(PdfReaderProvider.selectZoomInCommand,
+            this.zoomIn.bind(this)));
+        this._context.subscriptions.push(this.zoomInStatusBarItem);
+
+        this.zoomOutStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 111);
+        this.zoomOutStatusBarItem.command = PdfReaderProvider.selectZoomOutCommand;
+        this.zoomOutStatusBarItem.text = "$(pdfjs-reader-zoom-out)";
+
+        this._context.subscriptions.push(vscode.commands.registerCommand(PdfReaderProvider.selectZoomOutCommand,
+            this.zoomOut.bind(this)));
+        this._context.subscriptions.push(this.zoomOutStatusBarItem);
+    }
+
+    private static readonly zoomModes: Array<vscode.QuickPickItem & { mode: ZoomMode }> = [
+        { mode: 'auto', label: "Automatic Zoom" },
+        { mode: 'page-actual', label: "Actual Size" },
+        { mode: 'page-width', label: "Page Width" },
+        { mode: 'page-height', label: "Page Height" },
+        { mode: 'page-fit', label: "Page Fit" },
+        { mode: 0.5, label: "50%" },
+        { mode: 0.75, label: "75%" },
+        { mode: 1.0, label: "100%" },
+        { mode: 1.25, label: "125%" },
+        { mode: 1.5, label: "150%" },
+        { mode: 2.0, label: "200%" },
+        { mode: 3.0, label: "300%" },
+        { mode: 4.0, label: "400%" }
+    ];
+
+
+    private async selectZoomMode() {
+        if (this.webviews.active) {
+            const selected = await vscode.window.showQuickPick(PdfReaderProvider.zoomModes);
+
+            if (selected) {
+                this.postMessage(this.webviews.active, 'view', { zoomMode: { scale: selected.mode } });
+                this.updateZoomMode(selected.mode);
+            }
+        }
+    }
+
+    private updateZoomMode(mode: ZoomMode) {
+        const selected = PdfReaderProvider.zoomModes.find(m => m.mode == mode);
+        if (selected) {
+            this.zoomModeStatusBarItem.text = selected.label;
+        } else if (!isNaN(mode = Number(mode))) {
+            this.zoomModeStatusBarItem.text =
+                new Intl.NumberFormat('default', {
+                    style: 'percent',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                }).format(mode);
+        }
+
+        this.zoomModeStatusBarItem.show();
+        this.zoomInStatusBarItem.show();
+        this.zoomOutStatusBarItem.show();
+    }
+
+    private zoomIn() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'view', { zoomMode: { steps: +1 } });
+        }
+    }
+
+    private zoomOut() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'view', { zoomMode: { steps: -1 } });
+        }
+    }
 }
 
 type SpreadMode = 'none' | 'odd' | 'even';
 
 type ScrollMode = 'page' | 'vertical' | 'horizontal' | 'wrapped';
 
+type ZoomMode = 'auto' | 'page-actual' | 'page-width' | 'page-height' | 'page-fit' | number;
+
 interface Status {
     spreadMode?: SpreadMode;
     scrollMode?: ScrollMode;
+    zoomMode?: ZoomMode;
 }
 
 /**

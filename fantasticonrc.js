@@ -10,6 +10,8 @@ module.exports = {
         "scroll-page": 0xE004,
         "scroll-vertical": 0xE005,
         "scroll-horizontal": 0xE006,
-        "scroll-wrapped": 0xE007
+        "scroll-wrapped": 0xE007,
+        "zoom-in": 0xE008,
+        "zoom-out": 0xE009
     }
 }

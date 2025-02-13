@@ -45,6 +45,21 @@
         "command": "pdfjsReader.selectScrollMode",
         "title": "Scroll Mode",
         "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.selectZoomMode",
+        "title": "Zoom Mode",
+        "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.zoomIn",
+        "title": "Zoom In",
+        "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.zoomOut",
+        "title": "Zoom Out",
+        "category": "Reader"
       }
     ],
     "customEditors": [
@@ -107,6 +122,20 @@
         "default": {
           "fontPath": "dist/icons.woff2",
           "fontCharacter": "\\E007"
+        }
+      },
+      "pdfjs-reader-zoom-in": {
+        "description": "Zoom In",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E008"
+        }
+      },
+      "pdfjs-reader-zoom-out": {
+        "description": "Zoom Out",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E009"
         }
       }
     },
