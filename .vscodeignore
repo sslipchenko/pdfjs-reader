@@ -1,6 +1,7 @@
 3rdparty
 .vscode/**
 .vscode-test/**
+icons/**
 src/**
 .gitignore
 .yarnrc
