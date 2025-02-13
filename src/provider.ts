@@ -325,27 +325,27 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         return this.spreadModeStatusBarItem;
     }
 
-    private static readonly spreadModes = [
-        { id: 'none', label: "Single", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-none") },
-        { id: 'odd', label: "Odd", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-odd") },
-        { id: 'even', label: "Even", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-odd") }
+    private static readonly spreadModes: Array<vscode.QuickPickItem & { mode: SpreadMode }> = [
+        { mode: 'none', label: "Single", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-none") },
+        { mode: 'odd', label: "Odd", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-odd") },
+        { mode: 'even', label: "Even", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-odd") }
     ];
 
     private async selectSpreadMode() {
         if (this.webviews.active) {
-            const spreadMode = await vscode.window.showQuickPick(PdfReaderProvider.spreadModes);
+            const selected = await vscode.window.showQuickPick(PdfReaderProvider.spreadModes);
 
-            if (spreadMode) {
-                this.postMessage(this.webviews.active, 'view', { spreadMode: spreadMode.id });
-                this.updateSpreadMode(spreadMode.id as Status['spreadMode'])
+            if (selected) {
+                this.postMessage(this.webviews.active, 'view', { spreadMode: selected.mode });
+                this.updateSpreadMode(selected.mode)
             }
         }
     }
 
-    private updateSpreadMode(id: Status['spreadMode']) {
-        const mode = PdfReaderProvider.spreadModes.find(m => m.id == id);
-        if (mode) {
-            this.spreadModeStatusBarItem.text = `$(${mode.iconPath.id}) ${mode.label}`;
+    private updateSpreadMode(mode: SpreadMode) {
+        const selected = PdfReaderProvider.spreadModes.find(m => m.mode == mode);
+        if (selected) {
+            this.spreadModeStatusBarItem.text = `$(${(selected.iconPath as vscode.ThemeIcon).id}) ${selected.label}`;
             this.spreadModeStatusBarItem.show();
         } else {
             this.spreadModeStatusBarItem.hide();
@@ -365,29 +365,28 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         this._context.subscriptions.push(this.scrollModeStatusBarItem);
     }
 
-    private static readonly scrollModes = [
-        { id: 'page', label: "Page", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-page") },
-        { id: 'vertical', label: "Vertical", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-vertical") },
-        { id: 'horizontal', label: "Horizontal", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-horizontal") },
-        { id: 'wrapped', label: "Wrapped", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-wrapped") }
+    private static readonly scrollModes: Array<vscode.QuickPickItem & { mode: ScrollMode }> = [
+        { mode: 'page', label: "Page", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-page") },
+        { mode: 'vertical', label: "Vertical", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-vertical") },
+        { mode: 'horizontal', label: "Horizontal", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-horizontal") },
+        { mode: 'wrapped', label: "Wrapped", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-wrapped") }
     ];
 
     private async selectScrollMode() {
         if (this.webviews.active) {
-            const scrollMode = await vscode.window.showQuickPick(PdfReaderProvider.scrollModes);
+            const selected = await vscode.window.showQuickPick(PdfReaderProvider.scrollModes);
 
-            if (scrollMode) {
-                this.postMessage(this.webviews.active, 'view', { scrollMode: scrollMode.id });
-                this.updateScrollMode(scrollMode.id as Status['scrollMode'])
+            if (selected) {
+                this.postMessage(this.webviews.active, 'view', { scrollMode: selected.mode });
+                this.updateScrollMode(selected.mode)
             }
         }
     }
 
-    private updateScrollMode(id: Status['scrollMode']) {
-        console.log('updateScrollMode:', id);
-        const mode = PdfReaderProvider.scrollModes.find(m => m.id == id);
-        if (mode) {
-            this.scrollModeStatusBarItem.text = `$(${mode.iconPath.id}) ${mode.label}`;
+    private updateScrollMode(mode: ScrollMode) {
+        const selected = PdfReaderProvider.scrollModes.find(m => m.mode == mode);
+        if (selected) {
+            this.scrollModeStatusBarItem.text = `$(${(selected.iconPath as vscode.ThemeIcon).id}) ${selected.label}`;
             this.scrollModeStatusBarItem.show();
         } else {
             this.scrollModeStatusBarItem.hide();
@@ -395,9 +394,13 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
     }
 }
 
+type SpreadMode = 'none' | 'odd' | 'even';
+
+type ScrollMode = 'page' | 'vertical' | 'horizontal' | 'wrapped';
+
 interface Status {
-    spreadMode?: 'none' | 'odd' | 'even';
-    scrollMode?: 'page' | 'vertical' | 'horizontal' | 'wrapped';
+    spreadMode?: SpreadMode;
+    scrollMode?: ScrollMode;
 }
 
 /**
