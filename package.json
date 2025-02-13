@@ -40,6 +40,11 @@
         "command": "pdfjsReader.selectSpreadMode",
         "title": "Spread Mode",
         "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.selectScrollMode",
+        "title": "Scroll Mode",
+        "category": "Reader"
       }
     ],
     "customEditors": [
@@ -74,6 +79,34 @@
         "default": {
           "fontPath": "dist/icons.woff2",
           "fontCharacter": "\\E003"
+        }
+      },
+      "pdfjs-reader-scroll-page": {
+        "description": "Scroll Page",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E004"
+        }
+      },
+      "pdfjs-reader-scroll-vertical": {
+        "description": "Scroll Vertical",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E005"
+        }
+      },
+      "pdfjs-reader-scroll-horizontal": {
+        "description": "Scroll Horizontal",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E006"
+        }
+      },
+      "pdfjs-reader-scroll-wrapped": {
+        "description": "Scroll Wrapped",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E007"
         }
       }
     },
