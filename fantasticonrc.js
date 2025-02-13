@@ -1,4 +1,8 @@
 module.exports = {
+    inputDir: "./icons",
+    outputDir: "./dist",
+    fontTypes: ["woff2"],
+    assetTypes: [],
     codepoints: {
         "spread-none": 0xE001,
         "spread-odd": 0xE002,

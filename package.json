@@ -129,7 +129,7 @@
     "vscode:prepublish": "yarn run build",
     "build": "yarn run compile && yarn run generate-font",
     "compile": "tsc -p ./",
-    "generate-font": "fantasticon ./icons -o ./dist -t woff2 -g css -p pdfjs-reader",
+    "generate-font": "fantasticon",
     "watch": "tsc -watch -p ./",
     "pretest": "yarn run compile && yarn run lint",
     "lint": "eslint src",
