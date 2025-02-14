@@ -162,12 +162,12 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         webviewPanel.webview.onDidReceiveMessage(e => this.onMessage(document, e));
 
         // Wait for the webview to be properly ready before we init
-        const onReady = webviewPanel.webview.onDidReceiveMessage(async (e) => {
+        const onReady = webviewPanel.webview.onDidReceiveMessage((e) => {
             if (e.type === 'ready') {
                 // const editable = vscode.workspace.fs.isWritableFileSystem(document.uri.scheme);
                 const config = vscode.workspace.getConfiguration('pdfjs-reader');
 
-                const status = await this.postMessageWithResponse<Status>(webviewPanel, 'open', {
+                this.postMessage(webviewPanel, 'open', {
                     document: { url: webviewPanel.webview.asWebviewUri(document.dataFile).toString() },
                     cMapUrl: this.resolveAsUri(webviewPanel, 'lib', 'web', 'cmaps'),
                     standardFontDataUrl: this.resolveAsUri(webviewPanel, 'lib', 'web', 'standard_fonts'),
@@ -180,16 +180,19 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
                     }
                 });
 
-                this.updateStatusBar(status);
-
                 onReady.dispose();
+            }
+        });
+
+        webviewPanel.webview.onDidReceiveMessage((e) => {
+            if (e.type === 'status') {
+                this.updateStatusBar(e.body);
             }
         });
 
         webviewPanel.onDidChangeViewState(async (e) => {
             if (e.webviewPanel.active) {
-                const status = await this.postMessageWithResponse<Status>(webviewPanel, 'status', {});
-                this.updateStatusBar(status);
+                this.postMessage(webviewPanel, 'status', {});
             }
             if (!this.webviews.active) {
                 this.hideStatusBar();
@@ -345,7 +348,6 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
 
             if (selected) {
                 this.postMessage(this.webviews.active, 'view', { spreadMode: selected.mode });
-                this.updateSpreadMode(selected.mode)
             }
         }
     }
@@ -386,7 +388,6 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
 
             if (selected) {
                 this.postMessage(this.webviews.active, 'view', { scrollMode: selected.mode });
-                this.updateScrollMode(selected.mode)
             }
         }
     }
@@ -434,7 +435,7 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         this._context.subscriptions.push(this.zoomOutStatusBarItem);
     }
 
-    private static readonly zoomModes: Array<vscode.QuickPickItem & { mode: ZoomMode | undefined }> = [
+    private static readonly zoomModes: Array<vscode.QuickPickItem & { mode: ZoomMode }> = [
         { mode: 'auto', label: "Automatic Zoom" },
         { mode: 'page-actual', label: "Actual Size" },
         { mode: 'page-width', label: "Page Width" },
@@ -445,10 +446,7 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         { mode: 1.0, label: "100%" },
         { mode: 1.25, label: "125%" },
         { mode: 1.5, label: "150%" },
-        { mode: undefined, label: "Custom" },
-        // { mode: 2.0, label: "200%" },
-        // { mode: 3.0, label: "300%" },
-        // { mode: 4.0, label: "400%" }
+        { mode: -1, label: "Custom" }
     ];
 
 
@@ -458,13 +456,13 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
 
             if (selected) {
                 if (selected.mode) {
-                    this.postMessage(this.webviews.active, 'view', { zoomMode: { scale: selected.mode } });
-                    this.updateZoomMode(selected.mode);
-                } else {
-                    const custom = Number(await vscode.window.showInputBox({ title: "Custom Zoom" })) / 100;
-                    if (!isNaN(custom)) {
-                        this.postMessage(this.webviews.active, 'view', { zoomMode: { scale: custom } });
-                        this.updateZoomMode(custom);
+                    if (selected.mode != -1) {
+                        this.postMessage(this.webviews.active, 'view', { zoomMode: { scale: selected.mode } });
+                    } else {
+                        const custom = Number(await vscode.window.showInputBox({ title: "Custom Zoom" })) / 100;
+                        if (!isNaN(custom)) {
+                            this.postMessage(this.webviews.active, 'view', { zoomMode: { scale: custom } });
+                        }
                     }
                 }
             }
