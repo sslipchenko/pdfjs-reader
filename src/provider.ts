@@ -105,6 +105,7 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
 
     constructor(private readonly _context: vscode.ExtensionContext) {
         this.registerNavigation();
+        this.registerRotation();
         this.registerZoomMode();
         this.registerSpreadMode();
         this.registerScrollMode();
@@ -311,14 +312,23 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         if (status.zoomMode) {
             this.updateZoomMode(status.zoomMode);
         }
+
+        if (status.pagesRotation !== undefined) {
+            this.updateRotation(status.pagesRotation);
+        }
     }
 
     private hideStatusBar() {
         this.spreadModeStatusBarItem.hide();
         this.scrollModeStatusBarItem.hide();
+
         this.zoomModeStatusBarItem.hide();
         this.zoomInStatusBarItem.hide();
         this.zoomOutStatusBarItem.hide();
+
+        this.rotationStatusBarItem.hide();
+        this.rotateLeftStatusBarItem.hide();
+        this.rotateRightStatusBarItem.hide();
     }
 
     private static readonly selectSpreadModeCommand = "pdfjsReader.selectSpreadMode";
@@ -410,7 +420,7 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
     private zoomOutStatusBarItem!: vscode.StatusBarItem;
 
     private registerZoomMode() {
-        this.zoomModeStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 110);
+        this.zoomModeStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 120);
         this.zoomModeStatusBarItem.command = PdfReaderProvider.selectZoomModeCommand;
         this.zoomModeStatusBarItem.text = "Zoom Mode";
 
@@ -418,7 +428,7 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
             this.selectZoomMode.bind(this)));
         this._context.subscriptions.push(this.zoomModeStatusBarItem);
 
-        this.zoomInStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 109);
+        this.zoomInStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 119);
         this.zoomInStatusBarItem.command = PdfReaderProvider.selectZoomInCommand;
         this.zoomInStatusBarItem.text = "$(pdfjs-reader-zoom-in)";
 
@@ -426,7 +436,7 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
             this.zoomIn.bind(this)));
         this._context.subscriptions.push(this.zoomInStatusBarItem);
 
-        this.zoomOutStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 111);
+        this.zoomOutStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 121);
         this.zoomOutStatusBarItem.command = PdfReaderProvider.selectZoomOutCommand;
         this.zoomOutStatusBarItem.text = "$(pdfjs-reader-zoom-out)";
 
@@ -498,6 +508,56 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
             this.postMessage(this.webviews.active, 'view', { zoomMode: { steps: -1 } });
         }
     }
+
+    private rotationStatusBarItem!: vscode.StatusBarItem;
+
+    private static readonly rotateLeftCommand = "pdfjsReader.rotateLeft";
+    private rotateLeftStatusBarItem!: vscode.StatusBarItem;
+
+    private static readonly rotateRightCommand = "pdfjsReader.rotateRight";
+    private rotateRightStatusBarItem!: vscode.StatusBarItem;
+
+    private registerRotation() {
+        this.rotationStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 110);
+        this.rotationStatusBarItem.text = "Rotation";
+        this._context.subscriptions.push(this.rotationStatusBarItem);
+
+        this.rotateLeftStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 111);
+        this.rotateLeftStatusBarItem.command = PdfReaderProvider.rotateLeftCommand;
+        this.rotateLeftStatusBarItem.text = "$(pdfjs-reader-rotate-left)";
+
+        this._context.subscriptions.push(vscode.commands.registerCommand(PdfReaderProvider.rotateLeftCommand,
+            this.rotateLeft.bind(this)));
+        this._context.subscriptions.push(this.rotateLeftStatusBarItem);
+
+        this.rotateRightStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 109);
+        this.rotateRightStatusBarItem.command = PdfReaderProvider.rotateRightCommand;
+        this.rotateRightStatusBarItem.text = "$(pdfjs-reader-rotate-right)";
+
+        this._context.subscriptions.push(vscode.commands.registerCommand(PdfReaderProvider.rotateRightCommand,
+            this.rotateRight.bind(this)));
+        this._context.subscriptions.push(this.rotateRightStatusBarItem);
+    }
+
+    private updateRotation(pagesRotation: number) {
+        this.rotationStatusBarItem.text = `${pagesRotation} °`;
+
+        this.rotationStatusBarItem.show();
+        this.rotateLeftStatusBarItem.show();
+        this.rotateRightStatusBarItem.show();
+    }
+
+    private rotateLeft() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'view', { pagesRotation: { delta: -90 } });
+        }
+    }
+
+    private rotateRight() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'view', { pagesRotation: { delta: +90 } });
+        }
+    }
 }
 
 type SpreadMode = 'none' | 'odd' | 'even';
@@ -510,6 +570,7 @@ interface Status {
     spreadMode?: SpreadMode;
     scrollMode?: ScrollMode;
     zoomMode?: ZoomMode;
+    pagesRotation?: number;
 }
 
 /**

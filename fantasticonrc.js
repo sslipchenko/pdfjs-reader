@@ -12,6 +12,8 @@ module.exports = {
         "scroll-horizontal": 0xE006,
         "scroll-wrapped": 0xE007,
         "zoom-in": 0xE008,
-        "zoom-out": 0xE009
+        "zoom-out": 0xE009,
+        "rotate-left": 0xE00A,
+        "rotate-right": 0xE00B,
     }
 }

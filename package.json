@@ -60,6 +60,16 @@
         "command": "pdfjsReader.zoomOut",
         "title": "Zoom Out",
         "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.rotateLeft",
+        "title": "Rotate Left",
+        "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.rotateRight",
+        "title": "Rotate Right",
+        "category": "Reader"
       }
     ],
     "customEditors": [
@@ -137,6 +147,20 @@
           "fontPath": "dist/icons.woff2",
           "fontCharacter": "\\E009"
         }
+      },
+      "pdfjs-reader-rotate-left": {
+        "description": "Rotate Left",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E00A"
+        }
+      },
+      "pdfjs-reader-rotate-right": {
+        "description": "Rotate Right",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E00B"
+        }
       }
     },
     "keybindings": [
@@ -150,6 +174,30 @@
         "command": "pdfjsReader.goForward",
         "key": "ctrl+]",
         "mac": "cmd+]",
+        "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
+      },
+      {
+        "command": "pdfjsReader.zoomIn",
+        "key": "ctrl++",
+        "mac": "cmd++",
+        "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
+      },
+      {
+        "command": "pdfjsReader.zoomOut",
+        "key": "ctrl+-",
+        "mac": "cmd+-",
+        "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
+      },
+      {
+        "command": "pdfjsReader.rotateLeft",
+        "key": "ctrl+L",
+        "mac": "cmd+L",
+        "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
+      },
+      {
+        "command": "pdfjsReader.rotateRight",
+        "key": "ctrl+R",
+        "mac": "cmd+R",
         "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
       }
     ]
