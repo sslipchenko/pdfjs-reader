@@ -281,25 +281,6 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         }
     }
 
-    private registerNavigation() {
-        this._context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.goBack",
-            this.goBack.bind(this)));
-        this._context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.goForward",
-            this.goForward.bind(this)));
-    }
-
-    private goBack() {
-        if (this.webviews.active) {
-            this.postMessage(this.webviews.active, 'navigate', { action: 'GoBack' });
-        }
-    }
-
-    private goForward() {
-        if (this.webviews.active) {
-            this.postMessage(this.webviews.active, 'navigate', { action: 'GoForward' });
-        }
-    }
-
     private updateStatusBar(status: Status) {
         if (status.spreadMode) {
             this.updateSpreadMode(status.spreadMode);
@@ -316,6 +297,10 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         if (status.pagesRotation !== undefined) {
             this.updateRotation(status.pagesRotation);
         }
+
+        if (status.pages) {
+            this.updatePages(status.pages);
+        }
     }
 
     private hideStatusBar() {
@@ -329,6 +314,145 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         this.rotationStatusBarItem.hide();
         this.rotateLeftStatusBarItem.hide();
         this.rotateRightStatusBarItem.hide();
+
+        this.firstPageStatusBarItem.hide();
+        this.prevPageStatusBarItem.hide();
+        this.goToPageStatusBarItem.hide();
+        this.nextPageStatusBarItem.hide();
+        this.lastPageStatusBarItem.hide();
+    }
+
+    private makeStatusBarButton({
+        priority,
+        command,
+        text,
+        callback
+    }: {
+        priority: number;
+        command: string;
+        text: string;
+        callback: (...args: any[]) => any;
+    }) {
+        this._context.subscriptions.push(vscode.commands.registerCommand(command, callback, this));
+
+        const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, priority);
+        item.command = command;
+        item.text = text
+
+        this._context.subscriptions.push(item);
+
+        return item;
+    }
+
+    private static readonly goToPageCommand = "pdfjsReader.goToPage";
+    private goToPageStatusBarItem!: vscode.StatusBarItem;
+
+    private static readonly prevPageCommand = "pdfjsReader.prevPage";
+    private prevPageStatusBarItem!: vscode.StatusBarItem;
+
+    private static readonly nextPageCommand = "pdfjsReader.nextPage";
+    private nextPageStatusBarItem!: vscode.StatusBarItem;
+
+    private static readonly firstPageCommand = "pdfjsReader.firstPage";
+    private firstPageStatusBarItem!: vscode.StatusBarItem;
+
+    private static readonly lastPageCommand = "pdfjsReader.lastPage";
+    private lastPageStatusBarItem!: vscode.StatusBarItem;
+
+    private registerNavigation() {
+        this._context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.goBack",
+            this.goBack.bind(this)));
+        this._context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.goForward",
+            this.goForward.bind(this)));
+
+        this.firstPageStatusBarItem = this.makeStatusBarButton({
+            command: PdfReaderProvider.firstPageCommand,
+            callback: this.firstPage,
+            priority: 132,
+            text: "$(pdfjs-reader-page-first)"
+        });
+
+        this.prevPageStatusBarItem = this.makeStatusBarButton({
+            command: PdfReaderProvider.prevPageCommand,
+            callback: this.prevPage,
+            priority: 131,
+            text: "$(pdfjs-reader-page-prev)"
+        });
+
+        this.goToPageStatusBarItem = this.makeStatusBarButton({
+            command: PdfReaderProvider.goToPageCommand,
+            callback: this.goToPage,
+            priority: 130,
+            text: "Go to Page"
+        });
+
+        this.nextPageStatusBarItem = this.makeStatusBarButton({
+            command: PdfReaderProvider.nextPageCommand,
+            callback: this.nextPage,
+            priority: 129,
+            text: "$(pdfjs-reader-page-next)"
+        });
+
+        this.lastPageStatusBarItem = this.makeStatusBarButton({
+            command: PdfReaderProvider.lastPageCommand,
+            callback: this.lastPage,
+            priority: 128,
+            text: "$(pdfjs-reader-page-last)"
+        });
+    }
+
+    private updatePages({ current, total }: Pages) {
+        this.firstPageStatusBarItem.show();
+        this.prevPageStatusBarItem.show();
+        this.goToPageStatusBarItem.text = `${current} of ${total}`;
+        this.goToPageStatusBarItem.show();
+        this.nextPageStatusBarItem.show();
+        this.lastPageStatusBarItem.show();
+    }
+
+    private goBack() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'navigate', { action: 'GoBack' });
+        }
+    }
+
+    private goForward() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'navigate', { action: 'GoForward' });
+        }
+    }
+
+    private async goToPage() {
+        if (this.webviews.active) {
+            const page = await vscode.window.showInputBox({ title: "Go to Page" });
+            if (page) {
+                this.postMessage(this.webviews.active, 'navigate', { page: Number(page) });
+            }
+        }
+    }
+
+    private nextPage() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'navigate', { action: 'next' });
+        }
+    }
+
+    private prevPage() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'navigate', { action: 'prev' });
+        }
+    }
+
+    private firstPage() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'navigate', { action: 'first' });
+        }
+    }
+
+    private lastPage() {
+        if (this.webviews.active) {
+            this.postMessage(this.webviews.active, 'navigate', { action: 'last' });
+        }
     }
 
     private static readonly selectSpreadModeCommand = "pdfjsReader.selectSpreadMode";
@@ -342,8 +466,6 @@ export class PdfReaderProvider implements vscode.CustomEditorProvider<PdfDocumen
         this._context.subscriptions.push(vscode.commands.registerCommand(PdfReaderProvider.selectSpreadModeCommand,
             this.selectSpreadMode.bind(this)));
         this._context.subscriptions.push(this.spreadModeStatusBarItem);
-
-        return this.spreadModeStatusBarItem;
     }
 
     private static readonly spreadModes: Array<vscode.QuickPickItem & { mode: SpreadMode }> = [
@@ -566,11 +688,14 @@ type ScrollMode = 'page' | 'vertical' | 'horizontal' | 'wrapped';
 
 type ZoomMode = 'auto' | 'page-actual' | 'page-width' | 'page-height' | 'page-fit' | number;
 
+type Pages = { current: number; total: number; };
+
 interface Status {
     spreadMode?: SpreadMode;
     scrollMode?: ScrollMode;
     zoomMode?: ZoomMode;
     pagesRotation?: number;
+    pages?: Pages;
 }
 
 /**

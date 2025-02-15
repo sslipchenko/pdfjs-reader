@@ -15,5 +15,9 @@ module.exports = {
         "zoom-out": 0xE009,
         "rotate-left": 0xE00A,
         "rotate-right": 0xE00B,
+        "page-first": 0xE00C,
+        "page-last": 0xE00D,
+        "page-prev": 0xE00E,
+        "page-next": 0xE00F,
     }
 }

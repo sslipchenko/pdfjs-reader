@@ -70,6 +70,31 @@
         "command": "pdfjsReader.rotateRight",
         "title": "Rotate Right",
         "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.goToPage",
+        "title": "Go to Page",
+        "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.firstPage",
+        "title": "Go to First Page",
+        "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.lastPage",
+        "title": "Go to Last Page",
+        "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.prevPage",
+        "title": "Go to Prev Page",
+        "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.nextPage",
+        "title": "Go to Next Page",
+        "category": "Reader"
       }
     ],
     "customEditors": [
@@ -161,6 +186,34 @@
           "fontPath": "dist/icons.woff2",
           "fontCharacter": "\\E00B"
         }
+      },
+      "pdfjs-reader-page-first": {
+        "description": "Go to First Page",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E00C"
+        }
+      },
+      "pdfjs-reader-page-last": {
+        "description": "Go to Last Page",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E00D"
+        }
+      },
+      "pdfjs-reader-page-prev": {
+        "description": "Go to Prev Page",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E00E"
+        }
+      },
+      "pdfjs-reader-page-next": {
+        "description": "Go to Next Page",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E00F"
+        }
       }
     },
     "keybindings": [
@@ -198,6 +251,12 @@
         "command": "pdfjsReader.rotateRight",
         "key": "ctrl+R",
         "mac": "cmd+R",
+        "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
+      },
+      {
+        "command": "pdfjsReader.goToPage",
+        "key": "ctrl+G",
+        "mac": "cmd+G",
         "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
       }
     ]
