@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { PdfReaderProvider } from './provider';
+import { PdfProvider } from './provider';
 
 export function activate(context: vscode.ExtensionContext) {
-	PdfReaderProvider.register(context);
+	PdfProvider.register(context);
 }
 
 export function deactivate() {}
