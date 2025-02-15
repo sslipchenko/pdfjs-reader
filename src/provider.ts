@@ -2,7 +2,8 @@ import path from 'path';
 import * as vscode from 'vscode';
 import { disposeAll } from './dispose';
 import { PdfDocument } from './document';
-import { PdfPresenter, PdfPresenterCollection, Status, SpreadMode, ScrollMode, ZoomMode, Pages } from './presenter';
+import { PdfPresenter, PdfPresenterCollection, Status } from './presenter';
+import { NavigationStatusBarItems, ZoomStatusBarItems, RotationStatusBarItems, SpreadStatusBarItems, ScrollStatusBarItems } from './statusbar';
 
 export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
     private static readonly viewType = 'pdfjsReader.pdfReader';
@@ -19,12 +20,19 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
             }));
     }
 
+    private navigationStatusBarItems: NavigationStatusBarItems;
+    private zoomStatusBarItems: ZoomStatusBarItems;
+    private rotationStatusBarItems: RotationStatusBarItems;
+    private spreadStatusBarItems: SpreadStatusBarItems;
+    private scrollStatusBarItems: ScrollStatusBarItems;
+
     constructor(private readonly _context: vscode.ExtensionContext) {
-        this.registerNavigation();
-        this.registerRotation();
-        this.registerZoomMode();
-        this.registerSpreadMode();
-        this.registerScrollMode();
+        const presenter = () => this.presenters.active;
+        this.navigationStatusBarItems = new NavigationStatusBarItems(_context, presenter);
+        this.zoomStatusBarItems = new ZoomStatusBarItems(_context, presenter);
+        this.rotationStatusBarItems = new RotationStatusBarItems(_context, presenter);
+        this.spreadStatusBarItems = new SpreadStatusBarItems(_context, presenter);
+        this.scrollStatusBarItems = new ScrollStatusBarItems(_context, presenter);
     }
 
     async openCustomDocument(uri: vscode.Uri, openContext: { backupId?: string }, _token: vscode.CancellationToken): Promise<PdfDocument> {
@@ -75,7 +83,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
 
         webviewPanel.webview.onDidReceiveMessage((e) => {
             if (e.type === 'status') {
-                this.updateStatusBar(e.body);
+                this.showStatusBar(e.body);
             }
         });
 
@@ -114,373 +122,19 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
         return document.backup(context.destination, cancellation);
     }
 
-    private updateStatusBar(status: Status) {
-        if (status.spreadMode) {
-            this.updateSpreadMode(status.spreadMode);
-        }
-
-        if (status.scrollMode) {
-            this.updateScrollMode(status.scrollMode);
-        }
-
-        if (status.zoomMode) {
-            this.updateZoomMode(status.zoomMode);
-        }
-
-        if (status.pagesRotation !== undefined) {
-            this.updateRotation(status.pagesRotation);
-        }
-
-        if (status.pages) {
-            this.updatePages(status.pages);
-        }
+    private showStatusBar(status: Status) {
+        this.navigationStatusBarItems.show(status);
+        this.zoomStatusBarItems.show(status);
+        this.rotationStatusBarItems.show(status);
+        this.spreadStatusBarItems.show(status);
+        this.scrollStatusBarItems.show(status);
     }
 
     private hideStatusBar() {
-        this.spreadModeStatusBarItem.hide();
-        this.scrollModeStatusBarItem.hide();
-
-        this.zoomModeStatusBarItem.hide();
-        this.zoomInStatusBarItem.hide();
-        this.zoomOutStatusBarItem.hide();
-
-        this.rotationStatusBarItem.hide();
-        this.rotateLeftStatusBarItem.hide();
-        this.rotateRightStatusBarItem.hide();
-
-        this.firstPageStatusBarItem.hide();
-        this.prevPageStatusBarItem.hide();
-        this.goToPageStatusBarItem.hide();
-        this.nextPageStatusBarItem.hide();
-        this.lastPageStatusBarItem.hide();
-    }
-
-    private registerStatusBarItem({
-        priority,
-        command,
-        text,
-        callback
-    }: {
-        priority: number;
-        command: string;
-        text: string;
-        callback: (...args: any[]) => any;
-    }) {
-        this._context.subscriptions.push(vscode.commands.registerCommand(command, callback, this));
-
-        const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, priority);
-        item.command = command;
-        item.text = text
-
-        this._context.subscriptions.push(item);
-
-        return item;
-    }
-
-    private static readonly goToPageCommand = "pdfjsReader.goToPage";
-    private goToPageStatusBarItem!: vscode.StatusBarItem;
-
-    private static readonly prevPageCommand = "pdfjsReader.prevPage";
-    private prevPageStatusBarItem!: vscode.StatusBarItem;
-
-    private static readonly nextPageCommand = "pdfjsReader.nextPage";
-    private nextPageStatusBarItem!: vscode.StatusBarItem;
-
-    private static readonly firstPageCommand = "pdfjsReader.firstPage";
-    private firstPageStatusBarItem!: vscode.StatusBarItem;
-
-    private static readonly lastPageCommand = "pdfjsReader.lastPage";
-    private lastPageStatusBarItem!: vscode.StatusBarItem;
-
-    private registerNavigation() {
-        this._context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.goBack",
-            this.goBack, this));
-        this._context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.goForward",
-            this.goForward, this));
-
-        this.firstPageStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.firstPageCommand,
-            callback: this.firstPage,
-            priority: 132,
-            text: "$(pdfjs-reader-page-first)"
-        });
-
-        this.prevPageStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.prevPageCommand,
-            callback: this.prevPage,
-            priority: 131,
-            text: "$(pdfjs-reader-page-prev)"
-        });
-
-        this.goToPageStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.goToPageCommand,
-            callback: this.goToPage,
-            priority: 130,
-            text: "Go to Page"
-        });
-
-        this.nextPageStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.nextPageCommand,
-            callback: this.nextPage,
-            priority: 129,
-            text: "$(pdfjs-reader-page-next)"
-        });
-
-        this.lastPageStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.lastPageCommand,
-            callback: this.lastPage,
-            priority: 128,
-            text: "$(pdfjs-reader-page-last)"
-        });
-    }
-
-    private updatePages({ current, total }: Pages) {
-        this.firstPageStatusBarItem.show();
-        this.prevPageStatusBarItem.show();
-        this.goToPageStatusBarItem.text = `${current} of ${total}`;
-        this.goToPageStatusBarItem.show();
-        this.nextPageStatusBarItem.show();
-        this.lastPageStatusBarItem.show();
-    }
-
-    private goBack() {
-        this.presenters.active?.navigate({ action: 'GoBack' });
-    }
-
-    private goForward() {
-        this.presenters.active?.navigate({ action: 'GoForward' });
-    }
-
-    private async goToPage() {
-        if (this.presenters.active) {
-            const page = await vscode.window.showInputBox({ title: "Go to Page" });
-            if (page) {
-                this.presenters.active.navigate({ page: Number(page) });
-            }
-        }
-    }
-
-    private nextPage() {
-        this.presenters.active?.navigate({ action: 'next' });
-    }
-
-    private prevPage() {
-        this.presenters.active?.navigate({ action: 'prev' });
-    }
-
-    private firstPage() {
-        this.presenters.active?.navigate({ action: 'first' });
-    }
-
-    private lastPage() {
-        this.presenters.active?.navigate({ action: 'last' });
-    }
-
-    private static readonly selectSpreadModeCommand = "pdfjsReader.selectSpreadMode";
-    private spreadModeStatusBarItem!: vscode.StatusBarItem;
-
-    private registerSpreadMode() {
-        this.spreadModeStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.selectSpreadModeCommand,
-            callback: this.selectSpreadMode,
-            priority: 100,
-            text: "Spread Mode"
-        })
-    }
-
-    private static readonly spreadModes: Array<vscode.QuickPickItem & { mode: SpreadMode }> = [
-        { mode: 'none', label: "Single", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-none") },
-        { mode: 'odd', label: "Odd", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-odd") },
-        { mode: 'even', label: "Even", iconPath: new vscode.ThemeIcon("pdfjs-reader-spread-odd") }
-    ];
-
-    private async selectSpreadMode() {
-        if (this.presenters.active) {
-            const selected = await vscode.window.showQuickPick(PdfProvider.spreadModes, { title: "Spread Pages" });
-            if (selected) {
-                this.presenters.active.view({ spreadMode: selected.mode });
-            }
-        }
-    }
-
-    private updateSpreadMode(mode: SpreadMode) {
-        const selected = PdfProvider.spreadModes.find(m => m.mode == mode);
-        if (selected) {
-            this.spreadModeStatusBarItem.text = `$(${(selected.iconPath as vscode.ThemeIcon).id}) ${selected.label}`;
-            this.spreadModeStatusBarItem.show();
-        } else {
-            this.spreadModeStatusBarItem.hide();
-        }
-    }
-
-    private static readonly selectScrollModeCommand = "pdfjsReader.selectScrollMode";
-    private scrollModeStatusBarItem!: vscode.StatusBarItem;
-
-    private registerScrollMode() {
-        this.scrollModeStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.selectScrollModeCommand,
-            callback: this.selectScrollMode,
-            priority: 100,
-            text: "Scroll Mode"
-        });
-    }
-
-    private static readonly scrollModes: Array<vscode.QuickPickItem & { mode: ScrollMode }> = [
-        { mode: 'page', label: "Page", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-page") },
-        { mode: 'vertical', label: "Vertical", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-vertical") },
-        { mode: 'horizontal', label: "Horizontal", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-horizontal") },
-        { mode: 'wrapped', label: "Wrapped", iconPath: new vscode.ThemeIcon("pdfjs-reader-scroll-wrapped") }
-    ];
-
-    private async selectScrollMode() {
-        if (this.presenters.active) {
-            const selected = await vscode.window.showQuickPick(PdfProvider.scrollModes, { title: "Scroll Mode" });
-            if (selected) {
-                this.presenters.active.view({ scrollMode: selected.mode });
-            }
-        }
-    }
-
-    private updateScrollMode(mode: ScrollMode) {
-        const selected = PdfProvider.scrollModes.find(m => m.mode == mode);
-        if (selected) {
-            this.scrollModeStatusBarItem.text = `$(${(selected.iconPath as vscode.ThemeIcon).id}) ${selected.label}`;
-            this.scrollModeStatusBarItem.show();
-        } else {
-            this.scrollModeStatusBarItem.hide();
-        }
-    }
-
-    private static readonly selectZoomModeCommand = "pdfjsReader.selectZoomMode";
-    private zoomModeStatusBarItem!: vscode.StatusBarItem;
-    private static readonly selectZoomInCommand = "pdfjsReader.zoomIn";
-    private zoomInStatusBarItem!: vscode.StatusBarItem;
-    private static readonly selectZoomOutCommand = "pdfjsReader.zoomOut";
-    private zoomOutStatusBarItem!: vscode.StatusBarItem;
-
-    private registerZoomMode() {
-        this.zoomModeStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.selectZoomModeCommand,
-            callback: this.selectZoomMode,
-            priority: 120,
-            text: "Zoom Mode"
-        });
-
-        this.zoomInStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.selectZoomInCommand,
-            callback: this.zoomIn,
-            priority: 119,
-            text: "$(pdfjs-reader-zoom-in)"
-        });
-
-        this.zoomOutStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.selectZoomOutCommand,
-            callback: this.zoomOut,
-            priority: 121,
-            text: "$(pdfjs-reader-zoom-out)"
-        });
-    }
-
-    private static readonly zoomModes: Array<vscode.QuickPickItem & { mode: ZoomMode }> = [
-        { mode: 'auto', label: "Automatic Zoom" },
-        { mode: 'page-actual', label: "Actual Size" },
-        { mode: 'page-width', label: "Page Width" },
-        { mode: 'page-height', label: "Page Height" },
-        { mode: 'page-fit', label: "Page Fit" },
-        { mode: 0.5, label: "50%" },
-        { mode: 0.75, label: "75%" },
-        { mode: 1.0, label: "100%" },
-        { mode: 1.25, label: "125%" },
-        { mode: 1.5, label: "150%" },
-        { mode: -1, label: "Custom" }
-    ];
-
-
-    private async selectZoomMode() {
-        if (this.presenters.active) {
-            const selected = await vscode.window.showQuickPick(PdfProvider.zoomModes, { title: "Zoom Mode" });
-            if (selected) {
-                if (selected.mode) {
-                    if (selected.mode != -1) {
-                        this.presenters.active.view({ zoomMode: { scale: selected.mode } });
-                    } else {
-                        const custom = Number(await vscode.window.showInputBox({ title: "Custom Zoom" })) / 100;
-                        if (!isNaN(custom)) {
-                            this.presenters.active.view({ zoomMode: { scale: custom } });
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private updateZoomMode(mode: ZoomMode) {
-        const selected = PdfProvider.zoomModes.find(m => m.mode == mode);
-        if (selected) {
-            this.zoomModeStatusBarItem.text = selected.label;
-        } else if (!isNaN(mode = Number(mode))) {
-            this.zoomModeStatusBarItem.text =
-                new Intl.NumberFormat('default', {
-                    style: 'percent',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                }).format(mode);
-        }
-
-        this.zoomModeStatusBarItem.show();
-        this.zoomInStatusBarItem.show();
-        this.zoomOutStatusBarItem.show();
-    }
-
-    private zoomIn() {
-        this.presenters.active?.view({ zoomMode: { steps: +1 } });
-    }
-
-    private zoomOut() {
-        this.presenters.active?.view({ zoomMode: { steps: -1 } });
-    }
-
-    private rotationStatusBarItem!: vscode.StatusBarItem;
-
-    private static readonly rotateLeftCommand = "pdfjsReader.rotateLeft";
-    private rotateLeftStatusBarItem!: vscode.StatusBarItem;
-
-    private static readonly rotateRightCommand = "pdfjsReader.rotateRight";
-    private rotateRightStatusBarItem!: vscode.StatusBarItem;
-
-    private registerRotation() {
-        this.rotationStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 110);
-        this.rotationStatusBarItem.text = "Rotation";
-        this._context.subscriptions.push(this.rotationStatusBarItem);
-
-        this.rotateLeftStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.rotateLeftCommand,
-            callback: this.rotateLeft,
-            priority: 111,
-            text: "$(pdfjs-reader-rotate-left)"
-        });
-
-        this.rotateRightStatusBarItem = this.registerStatusBarItem({
-            command: PdfProvider.rotateRightCommand,
-            callback: this.rotateRight,
-            priority: 109,
-            text: "$(pdfjs-reader-rotate-right)"
-        });
-    }
-
-    private updateRotation(pagesRotation: number) {
-        this.rotationStatusBarItem.text = `${pagesRotation} °`;
-
-        this.rotationStatusBarItem.show();
-        this.rotateLeftStatusBarItem.show();
-        this.rotateRightStatusBarItem.show();
-    }
-
-    private rotateLeft() {
-        this.presenters.active?.view({ pagesRotation: { delta: -90 } });
-    }
-
-    private rotateRight() {
-        this.presenters.active?.view({ pagesRotation: { delta: +90 } });
+        this.navigationStatusBarItems.hide();
+        this.zoomStatusBarItems.hide();
+        this.rotationStatusBarItems.hide();
+        this.spreadStatusBarItems.hide();
+        this.scrollStatusBarItems.hide();
     }
 }
