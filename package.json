@@ -231,8 +231,8 @@
       },
       {
         "command": "pdfjsReader.zoomIn",
-        "key": "ctrl++",
-        "mac": "cmd++",
+        "key": "ctrl+=",
+        "mac": "cmd+=",
         "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
       },
       {
