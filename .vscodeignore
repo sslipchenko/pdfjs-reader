@@ -4,6 +4,7 @@
 icons/**
 src/**
 .gitignore
+fantasticonrc.js
 .yarnrc
 **/tsconfig.json
 **/eslint.config.mjs
