@@ -38,7 +38,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
                 }
 
                 const presenter = presentersForDocument[0];
-                const response = await presenter.postMessageWithResponse<number[]>('save', {});
+                const response = await presenter.save();
                 return new Uint8Array(response);
             }
         });
@@ -48,8 +48,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
         listeners.push(document.onDidChangeDocument(e => {
             for (const presenter of this.presenters.get(document.uri)) {
                 if (e.force || !presenter.webviewPanel.active) {
-                    presenter.postMessage('reload',
-                        { document: { url: presenter.webviewPanel.webview.asWebviewUri(e.dataFile).toString() } });
+                    presenter.reload(e.dataFile);
                 }
             }
         }));
@@ -82,7 +81,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
 
         webviewPanel.onDidChangeViewState(async (e) => {
             if (e.webviewPanel.active) {
-                presenter.postMessage('status', {});
+                presenter.status();
             }
             if (!this.presenters.active) {
                 this.hideStatusBar();
@@ -245,36 +244,36 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
     }
 
     private goBack() {
-        this.presenters.active?.postMessage('navigate', { action: 'GoBack' });
+        this.presenters.active?.navigate({ action: 'GoBack' });
     }
 
     private goForward() {
-        this.presenters.active?.postMessage('navigate', { action: 'GoForward' });
+        this.presenters.active?.navigate({ action: 'GoForward' });
     }
 
     private async goToPage() {
         if (this.presenters.active) {
             const page = await vscode.window.showInputBox({ title: "Go to Page" });
             if (page) {
-                this.presenters.active.postMessage('navigate', { page: Number(page) });
+                this.presenters.active.navigate({ page: Number(page) });
             }
         }
     }
 
     private nextPage() {
-        this.presenters.active?.postMessage('navigate', { action: 'next' });
+        this.presenters.active?.navigate({ action: 'next' });
     }
 
     private prevPage() {
-        this.presenters.active?.postMessage('navigate', { action: 'prev' });
+        this.presenters.active?.navigate({ action: 'prev' });
     }
 
     private firstPage() {
-        this.presenters.active?.postMessage('navigate', { action: 'first' });
+        this.presenters.active?.navigate({ action: 'first' });
     }
 
     private lastPage() {
-        this.presenters.active?.postMessage('navigate', { action: 'last' });
+        this.presenters.active?.navigate({ action: 'last' });
     }
 
     private static readonly selectSpreadModeCommand = "pdfjsReader.selectSpreadMode";
@@ -299,7 +298,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
         if (this.presenters.active) {
             const selected = await vscode.window.showQuickPick(PdfProvider.spreadModes, { title: "Spread Pages" });
             if (selected) {
-                this.presenters.active.postMessage('view', { spreadMode: selected.mode });
+                this.presenters.active.view({ spreadMode: selected.mode });
             }
         }
     }
@@ -337,7 +336,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
         if (this.presenters.active) {
             const selected = await vscode.window.showQuickPick(PdfProvider.scrollModes, { title: "Scroll Mode" });
             if (selected) {
-                this.presenters.active.postMessage('view', { scrollMode: selected.mode });
+                this.presenters.active.view({ scrollMode: selected.mode });
             }
         }
     }
@@ -403,11 +402,11 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
             if (selected) {
                 if (selected.mode) {
                     if (selected.mode != -1) {
-                        this.presenters.active.postMessage('view', { zoomMode: { scale: selected.mode } });
+                        this.presenters.active.view({ zoomMode: { scale: selected.mode } });
                     } else {
                         const custom = Number(await vscode.window.showInputBox({ title: "Custom Zoom" })) / 100;
                         if (!isNaN(custom)) {
-                            this.presenters.active.postMessage('view', { zoomMode: { scale: custom } });
+                            this.presenters.active.view({ zoomMode: { scale: custom } });
                         }
                     }
                 }
@@ -434,11 +433,11 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
     }
 
     private zoomIn() {
-        this.presenters.active?.postMessage('view', { zoomMode: { steps: +1 } });
+        this.presenters.active?.view({ zoomMode: { steps: +1 } });
     }
 
     private zoomOut() {
-        this.presenters.active?.postMessage('view', { zoomMode: { steps: -1 } });
+        this.presenters.active?.view({ zoomMode: { steps: -1 } });
     }
 
     private rotationStatusBarItem!: vscode.StatusBarItem;
@@ -478,10 +477,10 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
     }
 
     private rotateLeft() {
-        this.presenters.active?.postMessage('view', { pagesRotation: { delta: -90 } });
+        this.presenters.active?.view({ pagesRotation: { delta: -90 } });
     }
 
     private rotateRight() {
-        this.presenters.active?.postMessage('view', { pagesRotation: { delta: +90 } });
+        this.presenters.active?.view({ pagesRotation: { delta: +90 } });
     }
 }
