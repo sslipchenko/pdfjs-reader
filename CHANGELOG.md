@@ -11,3 +11,14 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Open and save PDF documents
 - Hide Open, Print and Download buttons
 - Apply VS Code theme colors
+
+## [0.0.2]
+
+### Added
+
+- Status bar items and commands for:
+    - Navigation: First/Previous/Go to Page/Next/Last and Back/Forward commands
+    - Zoom: Zoom Out/Zoom Mode/Zoom In
+    - Rotation: Rotate Left/Rotation Angle/Rotate Right
+    - Spread Mode
+    - Scroll Mode
