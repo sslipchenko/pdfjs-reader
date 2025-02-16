@@ -1,12 +1,10 @@
 import * as vscode from 'vscode';
 import { PdfPresenter, Status } from '../presenter';
 
-export type PdfPresenterDelegate = () => PdfPresenter | undefined
-
 export abstract class BaseStatusBarItems {
-    constructor(
-        protected readonly _context: vscode.ExtensionContext,
-        protected readonly _presenter: PdfPresenterDelegate) { }
+    protected presenter: PdfPresenter | undefined;
+
+    constructor(protected readonly _context: vscode.ExtensionContext) { }
 
     protected registerStatusBarItem({
         priority,
@@ -30,6 +28,9 @@ export abstract class BaseStatusBarItems {
         return item;
     }
 
-    abstract show(status: Status): void;
+    show(presenter: PdfPresenter): void {
+        this.presenter = presenter;
+    }
+
     abstract hide(): void;
 }

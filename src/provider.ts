@@ -27,12 +27,11 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
     private scrollStatusBarItems: ScrollStatusBarItems;
 
     constructor(private readonly _context: vscode.ExtensionContext) {
-        const presenter = () => this.presenters.active;
-        this.navigationStatusBarItems = new NavigationStatusBarItems(_context, presenter);
-        this.zoomStatusBarItems = new ZoomStatusBarItems(_context, presenter);
-        this.rotationStatusBarItems = new RotationStatusBarItems(_context, presenter);
-        this.spreadStatusBarItems = new SpreadStatusBarItems(_context, presenter);
-        this.scrollStatusBarItems = new ScrollStatusBarItems(_context, presenter);
+        this.navigationStatusBarItems = new NavigationStatusBarItems(_context);
+        this.zoomStatusBarItems = new ZoomStatusBarItems(_context);
+        this.rotationStatusBarItems = new RotationStatusBarItems(_context);
+        this.spreadStatusBarItems = new SpreadStatusBarItems(_context);
+        this.scrollStatusBarItems = new ScrollStatusBarItems(_context);
     }
 
     async openCustomDocument(uri: vscode.Uri, openContext: { backupId?: string }, _token: vscode.CancellationToken): Promise<PdfDocument> {
@@ -103,16 +102,13 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
         return document.backup(context.destination, cancellation);
     }
 
-    private updateStatusBar({ status }: {
-        readonly presenter: PdfPresenter;
-        readonly status?: Status;
-    }) {
-        if (status) {
-            this.navigationStatusBarItems.show(status);
-            this.zoomStatusBarItems.show(status);
-            this.rotationStatusBarItems.show(status);
-            this.spreadStatusBarItems.show(status);
-            this.scrollStatusBarItems.show(status);
+    private updateStatusBar({ presenter }: { readonly presenter: PdfPresenter; }) {
+        if (presenter.status) {
+            this.navigationStatusBarItems.show(presenter);
+            this.zoomStatusBarItems.show(presenter);
+            this.rotationStatusBarItems.show(presenter);
+            this.spreadStatusBarItems.show(presenter);
+            this.scrollStatusBarItems.show(presenter);
         }
 
         if (!this.presenters.active) {

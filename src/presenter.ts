@@ -55,6 +55,7 @@ export class PdfPresenter extends Disposable {
             if (e.webviewPanel.active) {
                 this.postMessage('status', {});
             } else {
+                this._status = undefined;
                 this._onDidChange.fire({ presenter: this })
             }
         });
@@ -73,11 +74,13 @@ export class PdfPresenter extends Disposable {
         super.dispose();
     }
 
+    private _status?: Status;
     private readonly _onDidChange = this._register(new vscode.EventEmitter<{
         readonly presenter: PdfPresenter;
-        readonly status?: Status;
     }>);
     public readonly onDidChange = this._onDidChange.event;
+
+    public get status() { return this._status; }
 
     save() {
         return this.postMessageWithResponse<number[]>('save', {});
@@ -121,7 +124,8 @@ export class PdfPresenter extends Disposable {
                 this._callbacks.delete(message.requestId);
                 break;
             case 'status':
-                this._onDidChange.fire({ presenter: this, status: message.body });
+                this._status = message.body;
+                this._onDidChange.fire({ presenter: this });
                 break;
         }
     }
@@ -175,8 +179,8 @@ export class PdfPresenterCollection {
     }
 
     /**
-         * Get all known presenters for a given uri.
-         */
+     * Get all known presenters for a given uri.
+     */
     public *get(uri: vscode.Uri): Iterable<PdfPresenter> {
         const key = uri.toString();
         for (const entry of this._presenters) {
@@ -187,7 +191,7 @@ export class PdfPresenterCollection {
     }
 
     /**
-     * Add a new preesenter to the collection.
+     * Add a new presenter to the collection.
      */
     public add(presenter: PdfPresenter) {
         const entry = { resource: presenter.document.uri.toString(), presenter };

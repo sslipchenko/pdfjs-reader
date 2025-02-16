@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { BaseStatusBarItems, PdfPresenterDelegate } from "./base";
-import { SpreadMode, Status } from '../presenter';
+import { BaseStatusBarItems } from "./base";
+import { PdfPresenter, SpreadMode, Status } from '../presenter';
 
 export class SpreadStatusBarItems extends BaseStatusBarItems {
     private spreadModeStatusBarItem!: vscode.StatusBarItem;
 
-    constructor(context: vscode.ExtensionContext, presenter: PdfPresenterDelegate) {
-        super(context, presenter);
+    constructor(context: vscode.ExtensionContext) {
+        super(context);
 
         this.spreadModeStatusBarItem = this.registerStatusBarItem({
             command: "pdfjsReader.selectSpreadMode",
@@ -16,9 +16,11 @@ export class SpreadStatusBarItems extends BaseStatusBarItems {
         })
     }
 
-    show(status: Status) {
-        if (status.spreadMode) {
-            const selected = SpreadStatusBarItems.spreadModes.find(m => m.mode == status.spreadMode);
+    show(presenter: PdfPresenter) {
+        super.show(presenter);
+        if (presenter.status?.spreadMode) {
+            const mode = presenter.status?.spreadMode;
+            const selected = SpreadStatusBarItems.spreadModes.find(m => m.mode == mode);
             if (selected) {
                 this.spreadModeStatusBarItem.text = `$(${(selected.iconPath as vscode.ThemeIcon).id}) ${selected.label}`;
                 this.spreadModeStatusBarItem.show();
@@ -39,11 +41,10 @@ export class SpreadStatusBarItems extends BaseStatusBarItems {
     ];
 
     private async selectSpreadMode() {
-        const presenter = this._presenter();
-        if (presenter) {
+        if (this.presenter) {
             const selected = await vscode.window.showQuickPick(SpreadStatusBarItems.spreadModes, { title: "Spread Pages" });
             if (selected) {
-                presenter.view({ spreadMode: selected.mode });
+                this.presenter.view({ spreadMode: selected.mode });
             }
         }
     }

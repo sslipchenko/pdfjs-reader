@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
-import { BaseStatusBarItems, PdfPresenterDelegate } from "./base";
-import { Status, ZoomMode } from '../presenter';
+import { BaseStatusBarItems } from "./base";
+import { PdfPresenter, ZoomMode } from '../presenter';
 
 export class ZoomStatusBarItems extends BaseStatusBarItems {
     private zoomModeStatusBarItem: vscode.StatusBarItem;
     private zoomInStatusBarItem: vscode.StatusBarItem;
     private zoomOutStatusBarItem: vscode.StatusBarItem;
 
-    constructor(context: vscode.ExtensionContext, presenter: PdfPresenterDelegate) {
-        super(context, presenter);
+    constructor(context: vscode.ExtensionContext) {
+        super(context);
 
         this.zoomModeStatusBarItem = this.registerStatusBarItem({
             command: "pdfjsReader.selectZoomMode",
@@ -32,9 +32,10 @@ export class ZoomStatusBarItems extends BaseStatusBarItems {
         });
     }
 
-    show(status: Status) {
-        if (status.zoomMode) {
-            let mode = status.zoomMode;
+    show(presenter: PdfPresenter) {
+        super.show(presenter);
+        if (presenter.status?.zoomMode) {
+            let mode = presenter.status.zoomMode;
             const selected = ZoomStatusBarItems.zoomModes.find(m => m.mode == mode);
             if (selected) {
                 this.zoomModeStatusBarItem.text = selected.label;
@@ -74,17 +75,16 @@ export class ZoomStatusBarItems extends BaseStatusBarItems {
     ];
 
     private async selectZoomMode() {
-        const presenter = this._presenter();
-        if (presenter) {
+        if (this.presenter) {
             const selected = await vscode.window.showQuickPick(ZoomStatusBarItems.zoomModes, { title: "Zoom Mode" });
             if (selected) {
                 if (selected.mode) {
                     if (selected.mode != -1) {
-                        presenter.view({ zoomMode: { scale: selected.mode } });
+                        this.presenter.view({ zoomMode: { scale: selected.mode } });
                     } else {
                         const custom = Number(await vscode.window.showInputBox({ title: "Custom Zoom" })) / 100;
                         if (!isNaN(custom)) {
-                            presenter.view({ zoomMode: { scale: custom } });
+                            this.presenter.view({ zoomMode: { scale: custom } });
                         }
                     }
                 }
@@ -93,10 +93,10 @@ export class ZoomStatusBarItems extends BaseStatusBarItems {
     }
 
     private zoomIn() {
-        this._presenter()?.view({ zoomMode: { steps: +1 } });
+        this.presenter?.view({ zoomMode: { steps: +1 } });
     }
 
     private zoomOut() {
-        this._presenter()?.view({ zoomMode: { steps: -1 } });
+        this.presenter?.view({ zoomMode: { steps: -1 } });
     }
 }

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { BaseStatusBarItems, PdfPresenterDelegate } from "./base";
-import { Status } from '../presenter';
+import { BaseStatusBarItems } from "./base";
+import { PdfPresenter } from '../presenter';
 
 export class NavigationStatusBarItems extends BaseStatusBarItems {
     private goToPageStatusBarItem: vscode.StatusBarItem;
@@ -9,8 +9,8 @@ export class NavigationStatusBarItems extends BaseStatusBarItems {
     private firstPageStatusBarItem: vscode.StatusBarItem;
     private lastPageStatusBarItem: vscode.StatusBarItem;
 
-    constructor(context: vscode.ExtensionContext, presenter: PdfPresenterDelegate) {
-        super(context, presenter);
+    constructor(context: vscode.ExtensionContext) {
+        super(context);
 
         this._context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.goBack",
             this.goBack, this));
@@ -53,9 +53,10 @@ export class NavigationStatusBarItems extends BaseStatusBarItems {
         });
     }
 
-    show(status: Status) {
-        if (status.pages) {
-            this.goToPageStatusBarItem.text = `${status.pages?.current} of ${status.pages?.total}`;
+    show(presenter: PdfPresenter) {
+        super.show(presenter);
+        if (presenter.status?.pages) {
+            this.goToPageStatusBarItem.text = `${presenter.status.pages.current} of ${presenter.status.pages.total}`;
 
             this.firstPageStatusBarItem.show();
             this.prevPageStatusBarItem.show();
@@ -74,36 +75,35 @@ export class NavigationStatusBarItems extends BaseStatusBarItems {
     }
 
     private goBack() {
-        this._presenter()?.navigate({ action: 'GoBack' });
+        this.presenter?.navigate({ action: 'GoBack' });
     }
 
     private goForward() {
-        this._presenter()?.navigate({ action: 'GoForward' });
+        this.presenter?.navigate({ action: 'GoForward' });
     }
 
     private async goToPage() {
-        const presenter = this._presenter();
-        if (presenter) {
+        if (this.presenter) {
             const page = await vscode.window.showInputBox({ title: "Go to Page" });
             if (page) {
-                presenter.navigate({ page: Number(page) });
+                this.presenter.navigate({ page: Number(page) });
             }
         }
     }
 
     private nextPage() {
-        this._presenter()?.navigate({ action: 'next' });
+        this.presenter?.navigate({ action: 'next' });
     }
 
     private prevPage() {
-        this._presenter()?.navigate({ action: 'prev' });
+        this.presenter?.navigate({ action: 'prev' });
     }
 
     private firstPage() {
-        this._presenter()?.navigate({ action: 'first' });
+        this.presenter?.navigate({ action: 'first' });
     }
 
     private lastPage() {
-        this._presenter()?.navigate({ action: 'last' });
+        this.presenter?.navigate({ action: 'last' });
     }
 }

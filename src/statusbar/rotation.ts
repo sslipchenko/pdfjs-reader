@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
-import { BaseStatusBarItems, PdfPresenterDelegate } from "./base";
-import { Status } from '../presenter';
+import { BaseStatusBarItems } from "./base";
+import { PdfPresenter } from '../presenter';
 
 export class RotationStatusBarItems extends BaseStatusBarItems {
     private rotationStatusBarItem: vscode.StatusBarItem;
     private rotateLeftStatusBarItem: vscode.StatusBarItem;
     private rotateRightStatusBarItem: vscode.StatusBarItem;
 
-    constructor(context: vscode.ExtensionContext, presenter: PdfPresenterDelegate) {
-        super(context, presenter);
+    constructor(context: vscode.ExtensionContext) {
+        super(context);
 
         this.rotationStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 110);
         this.rotationStatusBarItem.text = "Rotation";
@@ -29,9 +29,10 @@ export class RotationStatusBarItems extends BaseStatusBarItems {
         });
     }
 
-    show(status: Status) {
-        if (status.pagesRotation) {
-            this.rotationStatusBarItem.text = `${status.pagesRotation} °`;
+    show(presenter: PdfPresenter) {
+        super.show(presenter);
+        if (presenter.status?.pagesRotation) {
+            this.rotationStatusBarItem.text = `${presenter.status.pagesRotation} °`;
 
             this.rotationStatusBarItem.show();
             this.rotateLeftStatusBarItem.show();
@@ -46,10 +47,10 @@ export class RotationStatusBarItems extends BaseStatusBarItems {
     }
 
     private rotateLeft() {
-        this._presenter()?.view({ pagesRotation: { delta: -90 } });
+        this.presenter?.view({ pagesRotation: { delta: -90 } });
     }
 
     private rotateRight() {
-        this._presenter()?.view({ pagesRotation: { delta: +90 } });
+        this.presenter?.view({ pagesRotation: { delta: +90 } });
     }
 }

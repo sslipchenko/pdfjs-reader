@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { BaseStatusBarItems, PdfPresenterDelegate } from "./base";
-import { ScrollMode, Status } from '../presenter';
+import { BaseStatusBarItems } from "./base";
+import { PdfPresenter, ScrollMode, Status } from '../presenter';
 
 export class ScrollStatusBarItems extends BaseStatusBarItems {
     private scrollModeStatusBarItem: vscode.StatusBarItem;
 
-    constructor(context: vscode.ExtensionContext, presenter: PdfPresenterDelegate) {
-        super(context, presenter);
+    constructor(context: vscode.ExtensionContext) {
+        super(context);
 
         this.scrollModeStatusBarItem = this.registerStatusBarItem({
             command: "pdfjsReader.selectScrollMode",
@@ -16,9 +16,11 @@ export class ScrollStatusBarItems extends BaseStatusBarItems {
         });
     }
 
-    show(status: Status) {
-        if (status.scrollMode) {
-            const selected = ScrollStatusBarItems.scrollModes.find(m => m.mode == status.scrollMode);
+    show(presenter: PdfPresenter) {
+        super.show(presenter);
+        if (presenter.status?.scrollMode) {
+            const mode = presenter.status?.scrollMode;
+            const selected = ScrollStatusBarItems.scrollModes.find(m => m.mode == mode);
             if (selected) {
                 this.scrollModeStatusBarItem.text = `$(${(selected.iconPath as vscode.ThemeIcon).id}) ${selected.label}`;
                 this.scrollModeStatusBarItem.show();
@@ -40,11 +42,10 @@ export class ScrollStatusBarItems extends BaseStatusBarItems {
     ];
 
     private async selectScrollMode() {
-        const presenter = this._presenter();
-        if (presenter) {
+        if (this.presenter) {
             const selected = await vscode.window.showQuickPick(ScrollStatusBarItems.scrollModes, { title: "Scroll Mode" });
             if (selected) {
-                presenter.view({ scrollMode: selected.mode });
+                this.presenter.view({ scrollMode: selected.mode });
             }
         }
     }
