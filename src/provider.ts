@@ -81,26 +81,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
             ]
         };
 
-        webviewPanel.webview.onDidReceiveMessage((e) => {
-            if (e.type === 'status') {
-                this.showStatusBar(e.body);
-            }
-        });
-
-        webviewPanel.onDidChangeViewState(async (e) => {
-            if (e.webviewPanel.active) {
-                presenter.status();
-            }
-            if (!this.presenters.active) {
-                this.hideStatusBar();
-            }
-        });
-
-        webviewPanel.onDidDispose(() => {
-            if (!this.presenters.active) {
-                this.hideStatusBar();
-            }
-        });
+        presenter.onDidChange(this.updateStatusBar, this);
     }
 
     private readonly _onDidChangeCustomDocument = new vscode.EventEmitter<vscode.CustomDocumentEditEvent<PdfDocument>>();
@@ -122,19 +103,24 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
         return document.backup(context.destination, cancellation);
     }
 
-    private showStatusBar(status: Status) {
-        this.navigationStatusBarItems.show(status);
-        this.zoomStatusBarItems.show(status);
-        this.rotationStatusBarItems.show(status);
-        this.spreadStatusBarItems.show(status);
-        this.scrollStatusBarItems.show(status);
-    }
+    private updateStatusBar({ status }: {
+        readonly presenter: PdfPresenter;
+        readonly status?: Status;
+    }) {
+        if (status) {
+            this.navigationStatusBarItems.show(status);
+            this.zoomStatusBarItems.show(status);
+            this.rotationStatusBarItems.show(status);
+            this.spreadStatusBarItems.show(status);
+            this.scrollStatusBarItems.show(status);
+        }
 
-    private hideStatusBar() {
-        this.navigationStatusBarItems.hide();
-        this.zoomStatusBarItems.hide();
-        this.rotationStatusBarItems.hide();
-        this.spreadStatusBarItems.hide();
-        this.scrollStatusBarItems.hide();
+        if (!this.presenters.active) {
+            this.navigationStatusBarItems.hide();
+            this.zoomStatusBarItems.hide();
+            this.rotationStatusBarItems.hide();
+            this.spreadStatusBarItems.hide();
+            this.scrollStatusBarItems.hide();
+        }
     }
 }

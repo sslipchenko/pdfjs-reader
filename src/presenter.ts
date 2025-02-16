@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { PdfDocument } from './document';
+import { Disposable } from './dispose';
 
 export type SpreadMode = 'none' | 'odd' | 'even';
 
@@ -17,13 +18,15 @@ export interface Status {
     pages?: Pages;
 }
 
-export class PdfPresenter {
+export class PdfPresenter extends Disposable {
     private static _viewerHtml: string | undefined;
 
     constructor(
         private readonly _context: vscode.ExtensionContext,
         readonly document: PdfDocument,
         readonly webviewPanel: vscode.WebviewPanel) {
+        super();
+
         this.getHtmlForWebview().then(html => webviewPanel.webview.html = html);
 
         webviewPanel.webview.onDidReceiveMessage(e => this.onMessage(e));
@@ -47,7 +50,34 @@ export class PdfPresenter {
 
             onReady.dispose();
         });
+
+        webviewPanel.onDidChangeViewState(e => {
+            if (e.webviewPanel.active) {
+                this.postMessage('status', {});
+            } else {
+                this._onDidChange.fire({ presenter: this })
+            }
+        });
+
+        webviewPanel.onDidDispose(e => {
+            this.dispose();
+        });
     }
+
+    private readonly _onDidDispose = this._register(new vscode.EventEmitter<void>());
+    public readonly onDidDispose = this._onDidDispose.event;
+
+    dispose(): void {
+        this._onDidChange.fire({ presenter: this });
+        this._onDidDispose.fire();
+        super.dispose();
+    }
+
+    private readonly _onDidChange = this._register(new vscode.EventEmitter<{
+        readonly presenter: PdfPresenter;
+        readonly status?: Status;
+    }>);
+    public readonly onDidChange = this._onDidChange.event;
 
     save() {
         return this.postMessageWithResponse<number[]>('save', {});
@@ -55,10 +85,6 @@ export class PdfPresenter {
 
     reload(dataFile: vscode.Uri) {
         this.postMessage('reload', { document: { url: this.webviewPanel.webview.asWebviewUri(dataFile).toString() } });
-    }
-
-    status() {
-        this.postMessage('status', {});
     }
 
     navigate(options: { action?: string; page?: number }) {
@@ -91,10 +117,11 @@ export class PdfPresenter {
     private onMessage(message: any) {
         switch (message.type) {
             case 'response':
-                {
-                    const callback = this._callbacks.get(message.requestId);
-                    callback?.(message.body);
-                }
+                this._callbacks.get(message.requestId)?.(message.body);
+                this._callbacks.delete(message.requestId);
+                break;
+            case 'status':
+                this._onDidChange.fire({ presenter: this, status: message.body });
                 break;
         }
     }
@@ -166,7 +193,7 @@ export class PdfPresenterCollection {
         const entry = { resource: presenter.document.uri.toString(), presenter };
         this._presenters.add(entry);
 
-        presenter.webviewPanel.onDidDispose(() => {
+        presenter.onDidDispose(() => {
             this._presenters.delete(entry);
         });
     }
