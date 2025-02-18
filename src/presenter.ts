@@ -19,7 +19,8 @@ export interface Status {
 }
 
 export class PdfPresenter extends Disposable {
-    private static _viewerHtml: string | undefined;
+    private static _classicHtml: string | undefined;
+    private static _vscodeHtml: string | undefined;
 
     constructor(
         private readonly _context: vscode.ExtensionContext,
@@ -135,29 +136,45 @@ export class PdfPresenter extends Disposable {
             this._context.extensionUri, ...p));
     }
 
-    private async getHtmlForWebview(): Promise<string> {
-        const html = (await this.getViewerHtml())
-            .replace('locale/locale.json', this.resolveAsUri('lib', 'web', 'locale', 'locale.json').toString())
-            .replace('../build/pdf.mjs', this.resolveAsUri('lib', 'build', 'pdf.mjs').toString())
-            .replace('<link rel="stylesheet" href="viewer.css">',
-                `<link rel="stylesheet" href="${this.resolveAsUri('lib', 'web', 'viewer.css').toString()}">\n` +
-                `<link rel="stylesheet" href="${this.resolveAsUri('lib', 'controller.css').toString()}">`)
-            .replace('<script src="viewer.mjs" type="module"></script>',
-                `<script src="${this.resolveAsUri('lib', 'controller.mjs').toString()}" type="module"></script>\n` +
-                `<script src="${this.resolveAsUri('lib', 'web', 'viewer.mjs').toString()}" type="module"></script>`);
+    private isNewUI = true;
 
-        return html;
+    private async getHtmlForWebview(): Promise<string> {
+        if (this.isNewUI) {
+            return (await this.getViewHtml())
+                .replaceAll("./", this.resolveAsUri('dist', 'view/').toString());
+        } else {
+            return (await this.getViewHtml())
+                .replace('locale/locale.json', this.resolveAsUri('lib', 'web', 'locale', 'locale.json').toString())
+                .replace('../build/pdf.mjs', this.resolveAsUri('lib', 'build', 'pdf.mjs').toString())
+                .replace('<link rel="stylesheet" href="viewer.css">',
+                    `<link rel="stylesheet" href="${this.resolveAsUri('lib', 'web', 'viewer.css').toString()}">\n` +
+                    `<link rel="stylesheet" href="${this.resolveAsUri('lib', 'controller.css').toString()}">`)
+                .replace('<script src="viewer.mjs" type="module"></script>',
+                    `<script src="${this.resolveAsUri('lib', 'controller.mjs').toString()}" type="module"></script>\n` +
+                    `<script src="${this.resolveAsUri('lib', 'web', 'viewer.mjs').toString()}" type="module"></script>`);
+        }
     }
 
-    private async getViewerHtml(): Promise<string> {
-        if (!PdfPresenter._viewerHtml) {
-            PdfPresenter._viewerHtml = Buffer.from(
-                await vscode.workspace.fs.readFile(
-                    vscode.Uri.joinPath(this._context.extensionUri, 'lib', 'web', 'viewer.html')))
-                .toString('utf8');
-        }
+    private async getViewHtml(): Promise<string> {
+        if (this.isNewUI) {
+            if (!PdfPresenter._vscodeHtml) {
+                PdfPresenter._vscodeHtml = Buffer.from(
+                    await vscode.workspace.fs.readFile(
+                        vscode.Uri.joinPath(this._context.extensionUri, 'dist', 'view', 'view.html')))
+                    .toString('utf8');
+            }
 
-        return PdfPresenter._viewerHtml;
+            return PdfPresenter._vscodeHtml;
+        } else {
+            if (!PdfPresenter._classicHtml) {
+                PdfPresenter._classicHtml = Buffer.from(
+                    await vscode.workspace.fs.readFile(
+                        vscode.Uri.joinPath(this._context.extensionUri, 'lib', 'web', 'viewer.html')))
+                    .toString('utf8');
+            }
+
+            return PdfPresenter._classicHtml;
+        }
     }
 }
 

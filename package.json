@@ -109,7 +109,7 @@
         "priority": "default"
       }
     ],
-    "icons":{
+    "icons": {
       "pdfjs-reader-spread-none": {
         "description": "Spread None",
         "default": {
@@ -263,10 +263,13 @@
   },
   "scripts": {
     "vscode:prepublish": "yarn run build",
-    "build": "yarn run compile && yarn run generate-font",
-    "compile": "tsc -p ./",
+    "prebuild": "yarn run copy-pdfjs && yarn run generate-font && yarn run copy-files",
+    "build": "tsc -b ./",
+    "prewatch": "yarn run copy-pdfjs && yarn run generate-font && yarn run copy-files",
+    "watch": "tsc -watch -b ./",
     "generate-font": "fantasticon",
-    "watch": "tsc -watch -p ./",
+    "copy-files": "copyfiles -u 2 ./src/view/*.{css,html} ./dist/view",
+    "copy-pdfjs": "copyfiles -u 2 './node_modules/pdfjs-dist/{build,cmaps,standard_fonts,image_decoders,web}/**/*' ./dist/view",
     "pretest": "yarn run compile && yarn run lint",
     "lint": "eslint src",
     "test": "vscode-test"
@@ -275,13 +278,17 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
     "@types/vscode": "^1.96.0",
+    "@types/vscode-webview": "^1.57.5",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
+    "@vscode-elements/elements": "^1.13.1",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
     "@vscode/vsce": "^3.2.2",
+    "copyfiles": "^2.4.1",
     "eslint": "^9.19.0",
     "fantasticon": "^3.0.0",
+    "pdfjs-dist": "^4.10.38",
     "typescript": "^5.7.3"
   }
 }

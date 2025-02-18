@@ -75,7 +75,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
         webviewPanel.webview.options = {
             enableScripts: true,
             localResourceRoots: [
-                vscode.Uri.joinPath(this._context.extensionUri, 'lib'),
+                this._context.extensionUri,
                 document.dataFile.with({ path: path.dirname(document.dataFile.path) })
             ]
         };
