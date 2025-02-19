@@ -1,3 +1,5 @@
+import { VscodeTree } from "@vscode-elements/elements/dist/vscode-tree/index.js";
+
 const vscode = acquireVsCodeApi();
 
 const CMAP_URL = "./cmaps/";
@@ -35,9 +37,11 @@ function makePdfViewer() {
    });
 
    const container = document.getElementById("viewerContainer") as HTMLDivElement;
+   const viewer = document.getElementById("viewer") as HTMLDivElement;
 
    const pdfViewer = new pdfjsViewer.PDFViewer({
       container,
+      viewer,
       eventBus,
       linkService: pdfLinkService,
       findController: pdfFindController,
@@ -46,6 +50,17 @@ function makePdfViewer() {
 
    pdfLinkService.setViewer(pdfViewer);
    pdfScriptingManager.setViewer(pdfViewer);
+
+   const viewerPane = document.getElementById("viewerPane") as HTMLDivElement;
+   new ResizeObserver(() => {
+      const rect = viewerPane.getBoundingClientRect();
+      container.style.left = `${rect.left}px`;
+      container.style.width = `${rect.width}px`;
+
+      if (pdfViewer.currentScaleValue) {
+         pdfViewer.currentScaleValue = pdfViewer.currentScaleValue;
+      }
+   }).observe(viewerPane);
 
    const postStatus = (body: any) => vscode.postMessage({ type: 'status', body });
 
@@ -65,6 +80,17 @@ function makePdfViewer() {
 }
 
 const pdfViewer = makePdfViewer();
+
+type OutlineItem = Awaited<ReturnType<pdfjsLib.PDFDocumentProxy['getOutline']>>[number];
+type TreeItem = VscodeTree['data'][number];
+
+const makeOutline = (outline: OutlineItem[]): TreeItem[] => {
+   return outline.map(item => ({
+      label: item.title,
+      // value: item.url,
+      subItems: item.items ? makeOutline(item.items) : undefined
+   }));
+}
 
 window.addEventListener("load", () => {
    vscode.postMessage({ type: 'ready' });
@@ -119,6 +145,8 @@ const onReload = async ({
    pdfViewer.setDocument(pdf);
    (pdfViewer.linkService as pdfjsViewer.PDFLinkService).setDocument(document, null);
 
+   const outlineTree = window.document.getElementById("outlineTree") as VscodeTree;
+   outlineTree.data = makeOutline(await pdf.getOutline());
 }
 
 const onSave = async (requestId: any) => {

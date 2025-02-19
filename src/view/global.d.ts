@@ -7,4 +7,4 @@ declare global {
     export import pdfjsViewer = pdfjsViewerImport;
 }
 
-export {}
+export { }

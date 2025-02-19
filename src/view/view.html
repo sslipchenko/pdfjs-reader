@@ -8,12 +8,21 @@
 
     <link rel="stylesheet" href="./web/pdf_viewer.css">
     <link rel="stylesheet" href="./view.css">
+    <link rel="stylesheet" href="./@vscode/codicons/dist/codicon.css" id="vscode-codicon-stylesheet">
 
     <script src="./build/pdf.mjs" type="module"></script>
     <script src="./web/pdf_viewer.mjs" type="module"></script>
+    <script src="./@vscode-elements/elements/dist/bundled.js" type="module"></script>
 </head>
 
 <body tabindex="1">
+    <vscode-split-layout id="outerLayout" fixe-pane="start" handle-position="25%">
+        <div id="outlinePane" slot="start">
+            <vscode-tree id="outlineTree" arrows indent-guides></vscode-tree>
+        </div>
+        <div id="viewerPane" slot="end"></div>
+    </vscode-split-layout>
+
     <div id="viewerContainer">
         <div id="viewer" class="pdfViewer"></div>
     </div>
