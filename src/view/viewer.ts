@@ -68,6 +68,9 @@ export class Viewer {
         new ResizeObserver(this.onResize.bind(this)).observe(this.viewerPane);
 
         this.outlineTree = document.getElementById("outlineTree") as VscodeTree;
+        this.outlineTree.addEventListener('vsc-tree-select', ({ detail }) => {
+            this.linkService.goToDestination(JSON.parse(detail.value));
+        });
     }
 
     public async load({ document }: { document: { url: string } }) {
@@ -165,15 +168,15 @@ export class Viewer {
         type OutlineItem = Awaited<ReturnType<pdfjsLib.PDFDocumentProxy['getOutline']>>[number];
         type TreeItem = VscodeTree['data'][number];
 
-        const makeOutline = (outline: OutlineItem[]): TreeItem[] => {
-            return outline.map(item => ({
+        const makeOutline = (outline: OutlineItem[]): TreeItem[] =>
+            outline.map(item => ({
                 label: item.title,
-                // value: item.url,
+                value: JSON.stringify(item.dest),
                 subItems: item.items ? makeOutline(item.items) : undefined
             }));
-        }
 
-        this.outlineTree.data = makeOutline(await this.pdfViewer.pdfDocument!.getOutline());
+        const outline = await this.pdfViewer.pdfDocument!.getOutline();
+        this.outlineTree.data = makeOutline(outline);
     }
 }
 
