@@ -82,6 +82,8 @@ export class Viewer {
         this.pdfViewer.setDocument(pdf);
         this.linkService.setDocument(pdf, null);
 
+        this.history.initialize({ fingerprint: document.url });
+
         this.onLoad();
     }
 
