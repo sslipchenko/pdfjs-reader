@@ -3,7 +3,7 @@
   "author": "Serge Slipcheko <Serge.Slipchenko@gmail.com>",
   "displayName": "PDF.js Reader",
   "description": "PDF.js document reader for VS Code",
-  "version": "0.0.3",
+  "version": "0.1.0-pre-alpha",
   "license": "Apache-2.0",
   "engines": {
     "vscode": "^1.96.0"
