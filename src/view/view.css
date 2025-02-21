@@ -4,14 +4,14 @@ body {
     padding: 0;
 }
 
-#viewerContainer {
-    overflow: auto;
+#outlineSplit {
     position: absolute;
     width: 100%;
     height: 100%;
 }
 
- #outerLayout {
+#viewerContainer {
+    overflow: auto;
     position: absolute;
     width: 100%;
     height: 100%;

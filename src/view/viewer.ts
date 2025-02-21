@@ -23,10 +23,10 @@ export class Viewer {
     private readonly findController: pdfjsViewer.PDFFindController;
     private readonly scriptingManager: pdfjsViewer.PDFScriptingManager;
     private readonly history: pdfjsViewer.PDFHistory;
+    private readonly pdfViewer: pdfjsViewer.PDFViewer;
     private readonly container: HTMLDivElement;
     private readonly viewerPane: HTMLDivElement;
-    public readonly pdfViewer: pdfjsViewer.PDFViewer;
-    private readonly outlineTree: VscodeTree;
+    private readonly outlinePane: OutlinePane;
 
     constructor() {
         this.eventBus = new pdfjsViewer.EventBus();
@@ -67,9 +67,10 @@ export class Viewer {
         this.viewerPane = document.getElementById("viewerPane") as HTMLDivElement;
         new ResizeObserver(this.onResize.bind(this)).observe(this.viewerPane);
 
-        this.outlineTree = document.getElementById("outlineTree") as VscodeTree;
-        this.outlineTree.addEventListener('vsc-tree-select', ({ detail }) => {
-            this.linkService.goToDestination(JSON.parse(detail.value));
+        this.outlinePane = new OutlinePane({
+            outlinePane: document.getElementById("outlinePane") as HTMLDivElement,
+            pdfViewer: this.pdfViewer,
+            linkService: this.linkService
         });
     }
 
@@ -84,10 +85,9 @@ export class Viewer {
 
         this.pdfViewer.setDocument(pdf);
         this.linkService.setDocument(pdf, null);
+        this.outlinePane.setDocument(pdf);
 
         this.history.initialize({ fingerprint: document.url });
-
-        this.onLoad();
     }
 
     public save() {
@@ -163,20 +163,50 @@ export class Viewer {
             this.pdfViewer.currentScaleValue = this.pdfViewer.currentScaleValue;
         }
     }
+}
 
-    private async onLoad() {
-        type OutlineItem = Awaited<ReturnType<pdfjsLib.PDFDocumentProxy['getOutline']>>[number];
-        type TreeItem = VscodeTree['data'][number];
+class OutlinePane {
+    private readonly outlinePane: HTMLDivElement;
+    private readonly outlineTree: VscodeTree;
+    private readonly pdfViewer: pdfjsViewer.PDFViewer;
+    private readonly linkService: pdfjsViewer.PDFLinkService;
 
-        const makeOutline = (outline: OutlineItem[]): TreeItem[] =>
-            outline.map(item => ({
-                label: item.title,
-                value: JSON.stringify(item.dest),
-                subItems: item.items ? makeOutline(item.items) : undefined
-            }));
+    constructor({
+        outlinePane,
+        pdfViewer,
+        linkService
+    }: {
+        outlinePane: HTMLDivElement;
+        pdfViewer: pdfjsViewer.PDFViewer;
+        linkService: pdfjsViewer.PDFLinkService;
+    }) {
+        this.outlinePane = outlinePane;
+        this.outlineTree = outlinePane.querySelector('vscode-tree')!;
+        this.pdfViewer = pdfViewer;
+        this.linkService = linkService;
 
-        const outline = await this.pdfViewer.pdfDocument!.getOutline();
-        this.outlineTree.data = makeOutline(outline);
+        this.outlineTree.addEventListener('vsc-tree-select', ({ detail }) => {
+            this.linkService.setHash(detail.value.substring(1));
+        });
+    }
+
+    async setDocument(pdfDocument?: pdfjsLib.PDFDocumentProxy) {
+        if (pdfDocument) {
+            type OutlineItem = Awaited<ReturnType<pdfjsLib.PDFDocumentProxy['getOutline']>>[number];
+            type TreeItem = VscodeTree['data'][number];
+
+            const makeOutline = (outline: OutlineItem[]): TreeItem[] =>
+                outline.map(item => ({
+                    label: item.title,
+                    value: item.dest ? this.linkService.getDestinationHash(item.dest) : undefined,
+                    subItems: item.items ? makeOutline(item.items) : undefined
+                }));
+
+            const outline = await pdfDocument.getOutline();
+            this.outlineTree.data = makeOutline(outline);
+        } else {
+            this.outlineTree.data = [];
+        }
     }
 }
 
