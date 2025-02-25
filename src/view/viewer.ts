@@ -17,6 +17,13 @@ if (!pdfjsLib.getDocument || !pdfjsViewer.PDFViewer) {
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
 
+export interface LoadConfig {
+    document: { url: string };
+    defaults: {
+        pageNumber?: number;
+    }
+}
+
 export class Viewer {
     private readonly eventBus: pdfjsViewer.EventBus;
     private readonly linkService: pdfjsViewer.PDFLinkService;
@@ -75,7 +82,7 @@ export class Viewer {
         });
     }
 
-    public async load({ document }: { document: { url: string } }) {
+    public async load({ document, defaults }: LoadConfig) {
         const pdf = await pdfjsLib.getDocument({
             ...document,
             cMapUrl: CMAP_URL,
@@ -89,6 +96,12 @@ export class Viewer {
         this.outlinePane.setDocument(pdf);
 
         this.history.initialize({ fingerprint: document.url });
+
+        this.eventBus.on('pagesloaded', () => {
+            if (defaults.pageNumber) {
+                this.pdfViewer.currentPageNumber = defaults.pageNumber;
+            }
+        }, { once: true });
     }
 
     public save() {
@@ -247,13 +260,13 @@ class OutlinePane {
         this.outlineTree.data = updateSelected(this.outlineTree.data);
     }
 
-    private async getDestHashToPageNumber () {
+    private async getDestHashToPageNumber() {
         if (!this._destHashToPageNumber) {
             this._destHashToPageNumber = new Map();
 
             if (this.outlineTree.data) {
                 const queue = [this.outlineTree.data];
-                while(queue.length > 0) {
+                while (queue.length > 0) {
                     const items = queue.shift()!;
 
                     for (const { value: hash, subItems } of items) {

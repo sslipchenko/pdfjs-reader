@@ -1,4 +1,4 @@
-import { Viewer } from "./viewer.js";
+import { Viewer, LoadConfig } from "./viewer.js";
 
 const vscode = acquireVsCodeApi();
 
@@ -41,15 +41,13 @@ window.addEventListener('message', (e) => {
    }
 });
 
-const onOpen = async (config: {
-   document: { url: string }
-}) => {
+const onOpen = async (config: LoadConfig) => {
    await onReload(config);
 
    onStatus();
 }
 
-const onReload = (config: { document: { url: string } }) => viewer.load(config);
+const onReload = (config: LoadConfig) => viewer.load(config);
 
 const onSave = async (requestId: any) => {
    const data = await viewer.save();

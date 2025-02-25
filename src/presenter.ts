@@ -33,18 +33,14 @@ export class PdfPresenter extends Disposable {
         webviewPanel.webview.onDidReceiveMessage(e => this.onMessage(e));
 
         const onReady = webviewPanel.webview.onDidReceiveMessage(e => {
-            const config = vscode.workspace.getConfiguration('pdfjs-reader');
+            const configuration = vscode.workspace.getConfiguration('pdfjs-reader', this.document.uri);
 
             this.postMessage('open', {
                 document: { url: webviewPanel.webview.asWebviewUri(document.dataFile).toString() },
                 cMapUrl: this.resolveAsUri('lib', 'web', 'cmaps'),
                 standardFontDataUrl: this.resolveAsUri('lib', 'web', 'standard_fonts'),
                 defaults: {
-                    cursor: config.get('default.cursor') as string,
-                    zoom: config.get('default.zoom') as string,
-                    sidebarView: config.get('default.sidebarView') as string,
-                    scrollMode: config.get('default.scrollMode') as string,
-                    spreadMode: config.get('default.spreadMode') as string
+                    pageNumber: (configuration.get("pageNumber", {}) as Record<string, number>)[this.document.uri.fsPath] ?? 1
                 }
             });
 
@@ -127,6 +123,15 @@ export class PdfPresenter extends Disposable {
             case 'status':
                 this._status = message.body;
                 this._onDidChange.fire({ presenter: this });
+
+                console.log(this.document.uri);
+                const configuration = vscode.workspace.getConfiguration("pdfjs-reader", this.document.uri);
+                if (this.status?.pages?.current) {
+                    const current = configuration.get("pageNumber", {});
+                    configuration.update("pageNumber",
+                            { ...current, [this.document.uri.fsPath]: this.status?.pages?.current },
+                            vscode.ConfigurationTarget.Workspace);
+                }
                 break;
         }
     }

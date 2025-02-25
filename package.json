@@ -97,6 +97,20 @@
         "category": "Reader"
       }
     ],
+    "configuration": [
+      {
+        "id": "documentSettings",
+        "title": "Document Settings",
+        "properties": {
+          "pdfjs-reader.pageNumber": {
+            "type": "object",
+            "default": {},
+            "description": "Document page number",
+            "scope": "resource"
+          }
+        }
+      }
+    ],
     "customEditors": [
       {
         "viewType": "pdfjsReader.pdfReader",
