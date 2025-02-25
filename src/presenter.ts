@@ -61,6 +61,7 @@ export class PdfPresenter extends Disposable {
         });
 
         webviewPanel.onDidDispose(e => {
+            this._status = undefined;
             this.dispose();
         });
     }
@@ -69,8 +70,8 @@ export class PdfPresenter extends Disposable {
     public readonly onDidDispose = this._onDidDispose.event;
 
     dispose(): void {
-        this._onDidChange.fire({ presenter: this });
         this._onDidDispose.fire();
+        this._onDidChange.fire({ presenter: this });
         super.dispose();
     }
 
