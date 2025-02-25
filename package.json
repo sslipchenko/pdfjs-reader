@@ -109,6 +109,30 @@
             "scope": "resource"
           }
         }
+      },
+      {
+        "id": "viewSettings",
+        "title": "View Settings",
+        "properties": {
+          "pdfjs-reader.zoomMode": {
+            "type": "string",
+            "default": "auto",
+            "description": "View zoom mode",
+            "scope": "workspace"
+          },
+          "pdfjs-reader.scrollMode": {
+            "type": "string",
+            "default": "vertical",
+            "description": "View scroll mode",
+            "scope": "workspace"
+          },
+          "pdfjs-reader.spreadMode": {
+            "type": "string",
+            "default": "none",
+            "description": "View spread mode",
+            "scope": "workspace"
+          }
+        }
       }
     ],
     "customEditors": [

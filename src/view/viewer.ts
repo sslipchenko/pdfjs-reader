@@ -21,6 +21,9 @@ export interface LoadConfig {
     document: { url: string };
     defaults: {
         pageNumber?: number;
+        zoomMode?: string;
+        scrollMode?: string;
+        spreadMode?: string;
     }
 }
 
@@ -100,6 +103,18 @@ export class Viewer {
         this.eventBus.on('pagesloaded', () => {
             if (defaults.pageNumber) {
                 this.pdfViewer.currentPageNumber = defaults.pageNumber;
+            }
+
+            if (defaults.zoomMode) {
+                this.zoomMode = defaults.zoomMode;
+            }
+
+            if (defaults.scrollMode) {
+                this.scrollMode = defaults.scrollMode;
+            }
+
+            if (defaults.spreadMode) {
+                this.spreadMode = defaults.spreadMode;
             }
         }, { once: true });
     }

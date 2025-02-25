@@ -40,7 +40,10 @@ export class PdfPresenter extends Disposable {
                 cMapUrl: this.resolveAsUri('lib', 'web', 'cmaps'),
                 standardFontDataUrl: this.resolveAsUri('lib', 'web', 'standard_fonts'),
                 defaults: {
-                    pageNumber: (configuration.get("pageNumber", {}) as Record<string, number>)[this.document.uri.fsPath] ?? 1
+                    pageNumber: (configuration.get("pageNumber", {}) as Record<string, number>)[this.document.uri.fsPath] ?? 1,
+                    zoomMode: configuration.get("zoomMode") as string,
+                    scrollMode: configuration.get("scrollMode") as string,
+                    spreadMode: configuration.get("spreadMode") as string
                 }
             });
 
@@ -124,14 +127,30 @@ export class PdfPresenter extends Disposable {
                 this._status = message.body;
                 this._onDidChange.fire({ presenter: this });
 
-                console.log(this.document.uri);
-                const configuration = vscode.workspace.getConfiguration("pdfjs-reader", this.document.uri);
-                if (this.status?.pages?.current) {
+                let configuration = vscode.workspace.getConfiguration("pdfjs-reader", this.document.uri);
+                if (message.body.pages?.current) {
                     const current = configuration.get("pageNumber", {});
                     configuration.update("pageNumber",
                             { ...current, [this.document.uri.fsPath]: this.status?.pages?.current },
                             vscode.ConfigurationTarget.Workspace);
                 }
+
+                configuration = vscode.workspace.getConfiguration("pdfjs-reader");
+                if (message.body.zoomMode) {
+                    configuration.update("zoomMode", message.body.zoomMode,
+                        vscode.ConfigurationTarget.Workspace);
+                }
+
+                if (message.body.scrollMode) {
+                    configuration.update("scrollMode", message.body.scrollMode,
+                        vscode.ConfigurationTarget.Workspace);
+                }
+
+                if (message.body.spreadMode) {
+                    configuration.update("spreadMode", message.body.spreadMode,
+                        vscode.ConfigurationTarget.Workspace);
+                }
+
                 break;
         }
     }
