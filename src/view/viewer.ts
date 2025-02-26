@@ -1,4 +1,4 @@
-import { VscodeTree } from "@vscode-elements/elements/dist/vscode-tree/index.js";
+import { VscodeSplitLayout, VscodeTree } from "@vscode-elements/elements/dist/main.js";
 
 const CMAP_URL = "./cmaps/";
 const CMAP_PACKED = true;
@@ -24,6 +24,7 @@ export interface LoadConfig {
         zoomMode?: string;
         scrollMode?: string;
         spreadMode?: string;
+        outlineSize?: string;
     }
 }
 
@@ -35,6 +36,7 @@ export class Viewer {
     private readonly history: pdfjsViewer.PDFHistory;
     private readonly pdfViewer: pdfjsViewer.PDFViewer;
     private readonly container: HTMLDivElement;
+    private readonly outlineSplit: VscodeSplitLayout;
     private readonly viewerPane: HTMLDivElement;
     private readonly outlinePane: OutlinePane;
 
@@ -74,6 +76,12 @@ export class Viewer {
         this.linkService.setHistory(this.history);
         this.scriptingManager.setViewer(this.pdfViewer);
 
+        this.outlineSplit = document.getElementById("outlineSplit") as VscodeSplitLayout;
+        this.outlineSplit.addEventListener("vsc-split-layout-change", ({detail}) => {
+            this.outlineSplit.handlePosition = `${detail.position}px`;
+            this.eventBus.dispatch('outlinelayoutchanged', {});
+        });
+
         this.viewerPane = document.getElementById("viewerPane") as HTMLDivElement;
         new ResizeObserver(this.onResize.bind(this)).observe(this.viewerPane);
 
@@ -86,6 +94,11 @@ export class Viewer {
     }
 
     public async load({ document, defaults }: LoadConfig) {
+        if (defaults.outlineSize) {
+            this.outlineSplit.style.display = "";
+            this.outlineSize = defaults.outlineSize;
+        }
+
         const pdf = await pdfjsLib.getDocument({
             ...document,
             cMapUrl: CMAP_URL,
@@ -102,7 +115,7 @@ export class Viewer {
 
         this.eventBus.on('pagesloaded', () => {
             if (defaults.pageNumber) {
-                this.pdfViewer.currentPageNumber = defaults.pageNumber;
+                this.currentPageNumber = defaults.pageNumber;
             }
 
             if (defaults.zoomMode) {
@@ -121,6 +134,14 @@ export class Viewer {
 
     public save() {
         return this.pdfViewer.pdfDocument?.saveDocument();
+    }
+
+    public get outlineSize() {
+        return this.outlineSplit.handlePosition!;
+    }
+
+    public set outlineSize(size: string) {
+        this.outlineSplit.handlePosition = size;
     }
 
     public get spreadMode() {

@@ -131,6 +131,12 @@
             "default": "none",
             "description": "View spread mode",
             "scope": "workspace"
+          },
+          "pdfjs-reader.outlineSize": {
+            "type": "string",
+            "default": "none",
+            "description": "Outline pane size",
+            "scope": "workspace"
           }
         }
       }

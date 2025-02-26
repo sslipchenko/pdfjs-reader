@@ -6,6 +6,7 @@ const viewer = new Viewer();
 
 const postStatus = (body: any) => vscode.postMessage({ type: 'status', body });
 
+viewer.on("outlinelayoutchanged", () => postStatus({ outlineSize: viewer.outlineSize }));
 viewer.on("scrollmodechanged", () => postStatus({ scrollMode: viewer.scrollMode }));
 viewer.on("spreadmodechanged", () => postStatus({ spreadMode: viewer.spreadMode }));
 viewer.on("scalechanging", () => postStatus({ zoomMode: viewer.zoomMode }));

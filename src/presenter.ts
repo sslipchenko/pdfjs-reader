@@ -33,17 +33,18 @@ export class PdfPresenter extends Disposable {
         webviewPanel.webview.onDidReceiveMessage(e => this.onMessage(e));
 
         const onReady = webviewPanel.webview.onDidReceiveMessage(e => {
-            const configuration = vscode.workspace.getConfiguration('pdfjs-reader', this.document.uri);
+            const configuration = this.getConfiguration();
 
             this.postMessage('open', {
                 document: { url: webviewPanel.webview.asWebviewUri(document.dataFile).toString() },
                 cMapUrl: this.resolveAsUri('lib', 'web', 'cmaps'),
                 standardFontDataUrl: this.resolveAsUri('lib', 'web', 'standard_fonts'),
                 defaults: {
-                    pageNumber: (configuration.get("pageNumber", {}) as Record<string, number>)[this.document.uri.fsPath] ?? 1,
+                    pageNumber: (this.getConfiguration(true).get("pageNumber", {}) as Record<string, number>)[this.document.uri.fsPath] ?? 1,
                     zoomMode: configuration.get("zoomMode") as string,
                     scrollMode: configuration.get("scrollMode") as string,
-                    spreadMode: configuration.get("spreadMode") as string
+                    spreadMode: configuration.get("spreadMode") as string,
+                    outlineSize: configuration.get("outlineSize") as string
                 }
             });
 
@@ -128,32 +129,40 @@ export class PdfPresenter extends Disposable {
                 this._status = message.body;
                 this._onDidChange.fire({ presenter: this });
 
-                let configuration = vscode.workspace.getConfiguration("pdfjs-reader", this.document.uri);
                 if (message.body.pages?.current) {
+                    const configuration = this.getConfiguration(true);
                     const current = configuration.get("pageNumber", {});
                     configuration.update("pageNumber",
                             { ...current, [this.document.uri.fsPath]: this.status?.pages?.current },
                             vscode.ConfigurationTarget.Workspace);
                 }
 
-                configuration = vscode.workspace.getConfiguration("pdfjs-reader");
                 if (message.body.zoomMode) {
-                    configuration.update("zoomMode", message.body.zoomMode,
+                    this.getConfiguration().update("zoomMode", message.body.zoomMode,
                         vscode.ConfigurationTarget.Workspace);
                 }
 
                 if (message.body.scrollMode) {
-                    configuration.update("scrollMode", message.body.scrollMode,
+                    this.getConfiguration().update("scrollMode", message.body.scrollMode,
                         vscode.ConfigurationTarget.Workspace);
                 }
 
                 if (message.body.spreadMode) {
-                    configuration.update("spreadMode", message.body.spreadMode,
+                    this.getConfiguration().update("spreadMode", message.body.spreadMode,
+                        vscode.ConfigurationTarget.Workspace);
+                }
+
+                if (message.body.outlineSize) {
+                    this.getConfiguration().update("outlineSize", message.body.outlineSize,
                         vscode.ConfigurationTarget.Workspace);
                 }
 
                 break;
         }
+    }
+
+    private getConfiguration(document?: boolean) {
+        return vscode.workspace.getConfiguration("pdfjs-reader", document ? this.document.uri : null);
     }
 
     private resolveAsUri(...p: string[]): vscode.Uri {
