@@ -77,7 +77,9 @@ export class Viewer {
         this.scriptingManager.setViewer(this.pdfViewer);
 
         this.outlineSplit = document.getElementById("outlineSplit") as VscodeSplitLayout;
-        this.outlineSplit.addEventListener("vsc-split-layout-change", ({detail}) => {
+        this.outlineSplit['_handleMouseMove'] = patchedHandleMouseMove.bind(this.outlineSplit);
+
+        this.outlineSplit.addEventListener("vsc-split-layout-change", ({ detail }) => {
             this.outlineSplit.handlePosition = `${detail.position}px`;
             this.eventBus.dispatch('outlinelayoutchanged', {});
         });
@@ -212,6 +214,27 @@ export class Viewer {
         if (this.pdfViewer.currentScaleValue) {
             this.pdfViewer.currentScaleValue = this.pdfViewer.currentScaleValue;
         }
+    }
+}
+
+function patchedHandleMouseMove(this: any, event: MouseEvent) {
+    const { clientX, clientY } = event;
+    const { left, top, height, width } = this._boundRect;
+    const vert = this.split === 'vertical';
+    const maxPos = vert ? width : height;
+    const mousePos = vert ? clientX - left : clientY - top;
+
+    this._handlePosition = Math.max(
+        100,
+        Math.min(mousePos - this._handleOffset + this.handleSize / 2, maxPos)
+    );
+
+    if (this.fixedPane === 'start') {
+        this._fixedPaneSize = this._handlePosition;
+    }
+
+    if (this.fixedPane === 'end') {
+        this._fixedPaneSize = maxPos - this._handlePosition;
     }
 }
 
