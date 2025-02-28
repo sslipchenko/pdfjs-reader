@@ -28,6 +28,57 @@
         <div id="viewer" class="pdfViewer"></div>
     </div>
 
+    <div id="findPane" style="display: none;">
+        <vscode-icon
+            class="option highlightAll"
+            name="paintcan"
+            title="Highlight All"
+            action-icon>
+        </vscode-icon>
+        <vscode-textfield placeholder="Find in document...">
+            <vscode-icon
+                class="option caseSensitive"
+                slot="content-after"
+                name="case-sensitive"
+                title="Match Case"
+                action-icon>
+            </vscode-icon>
+            <vscode-icon
+                class="option entireWord"
+                slot="content-after"
+                name="whole-word"
+                title="Match Whole Word"
+                action-icon>
+            </vscode-icon>
+            <vscode-icon
+                class="option matchDiacritics"
+                slot="content-after"
+                name="search-fuzzy"
+                title="Match Diacritics"
+                action-icon>
+            </vscode-icon>
+        </vscode-textfield>
+        <span class="matches empty">No results</span>
+        <vscode-icon
+            class="button prev"
+            name="arrow-up"
+            title="Previous Match"
+            action-icon>
+        </vscode-icon>
+        <vscode-icon
+            class="button next"
+            name="arrow-down"
+            title="Next Match"
+            action-icon>
+        </vscode-icon>
+        <vscode-icon
+            class="button close"
+            name="close"
+            title="Close"
+            action-icon>
+        </vscode-icon>
+    </div>
+
     <script src="./view.js" type="module"></script>
 </body>
 

@@ -18,6 +18,16 @@ export interface Status {
     pages?: Pages;
 }
 
+export interface FindState {
+    query: string;
+    options: {
+        highlightAll?: boolean;
+        caseSensitive?: boolean;
+        entireWord?: boolean;
+        matchDiacritics?: boolean;
+    }
+}
+
 export class PdfPresenter extends Disposable {
     private static _classicHtml: string | undefined;
     private static _vscodeHtml: string | undefined;
@@ -105,6 +115,16 @@ export class PdfPresenter extends Disposable {
         this.postMessage('view', options);
     }
 
+    private static readonly FIND_STATE = 'pdfjs-reader.find';
+
+    find() {
+        const findState = this._context.workspaceState.get<FindState>(PdfPresenter.FIND_STATE, {
+            query: '', options: {}
+        });
+
+        this.postMessage('find', findState);
+    }
+
     private _requestId = 1;
     private readonly _callbacks = new Map<number, (response: any) => void>();
 
@@ -133,8 +153,8 @@ export class PdfPresenter extends Disposable {
                     const configuration = this.getConfiguration(true);
                     const current = configuration.get("pageNumber", {});
                     configuration.update("pageNumber",
-                            { ...current, [this.document.uri.fsPath]: this.status?.pages?.current },
-                            vscode.ConfigurationTarget.Workspace);
+                        { ...current, [this.document.uri.fsPath]: this.status?.pages?.current },
+                        vscode.ConfigurationTarget.Workspace);
                 }
 
                 if (message.body.zoomMode) {
@@ -157,6 +177,9 @@ export class PdfPresenter extends Disposable {
                         vscode.ConfigurationTarget.Workspace);
                 }
 
+                break;
+            case 'find':
+                this._context.workspaceState.update(PdfPresenter.FIND_STATE, message.body);
                 break;
         }
     }

@@ -6,6 +6,19 @@ const viewer = new Viewer();
 
 const postStatus = (body: any) => vscode.postMessage({ type: 'status', body });
 
+viewer.on("find", ({
+   query,
+   highlightAll,
+   caseSensitive,
+   entireWord,
+   matchDiacritics
+}: {
+   query: string
+   highlightAll?: boolean;
+   caseSensitive?: boolean;
+   entireWord?: boolean;
+   matchDiacritics?: boolean;
+}) => vscode.postMessage({ type: 'find', body: { query, options: { highlightAll, caseSensitive, entireWord, matchDiacritics } } }));
 viewer.on("outlinelayoutchanged", () => postStatus({ outlineSize: viewer.outlineSize }));
 viewer.on("scrollmodechanged", () => postStatus({ scrollMode: viewer.scrollMode }));
 viewer.on("spreadmodechanged", () => postStatus({ spreadMode: viewer.spreadMode }));
@@ -32,6 +45,9 @@ window.addEventListener('message', (e) => {
          break;
       case 'view':
          onView(body);
+         break;
+      case 'find':
+         onFind(body);
          break;
       case 'navigate':
          onNavigate(body);
@@ -87,6 +103,21 @@ const onView = ({
          viewer.rotation += pagesRotation.delta;
       }
    }
+}
+
+const onFind = ({
+   query,
+   options
+}: {
+   query: string;
+   options: {
+      highlightAll?: boolean;
+      matchCase?: boolean;
+      matchDiacritics?: boolean;
+      matchWholeWords?: boolean;
+   }
+}) => {
+   viewer.find(query, options);
 }
 
 const onNavigate = ({

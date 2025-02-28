@@ -32,6 +32,9 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
         this.rotationStatusBarItems = new RotationStatusBarItems(_context);
         this.spreadStatusBarItems = new SpreadStatusBarItems(_context);
         this.scrollStatusBarItems = new ScrollStatusBarItems(_context);
+
+        this._context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.find",
+            () => { this.presenters.active?.find(); }));
     }
 
     async openCustomDocument(uri: vscode.Uri, openContext: { backupId?: string }, _token: vscode.CancellationToken): Promise<PdfDocument> {

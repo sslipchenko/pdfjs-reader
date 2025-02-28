@@ -95,6 +95,11 @@
         "command": "pdfjsReader.nextPage",
         "title": "Go to Next Page",
         "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.find",
+        "title": "Find",
+        "category": "Reader"
       }
     ],
     "configuration": [
@@ -301,6 +306,12 @@
         "command": "pdfjsReader.goToPage",
         "key": "ctrl+G",
         "mac": "cmd+G",
+        "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
+      },
+      {
+        "command": "pdfjsReader.find",
+        "key": "ctrl+f",
+        "mac": "cmd+f",
         "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
       }
     ]
