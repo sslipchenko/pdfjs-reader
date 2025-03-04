@@ -102,50 +102,6 @@
         "category": "Reader"
       }
     ],
-    "configuration": [
-      {
-        "id": "documentSettings",
-        "title": "Document Settings",
-        "properties": {
-          "pdfjs-reader.pageNumber": {
-            "type": "object",
-            "default": {},
-            "description": "Document page number",
-            "scope": "resource"
-          }
-        }
-      },
-      {
-        "id": "viewSettings",
-        "title": "View Settings",
-        "properties": {
-          "pdfjs-reader.zoomMode": {
-            "type": "string",
-            "default": "auto",
-            "description": "View zoom mode",
-            "scope": "workspace"
-          },
-          "pdfjs-reader.scrollMode": {
-            "type": "string",
-            "default": "vertical",
-            "description": "View scroll mode",
-            "scope": "workspace"
-          },
-          "pdfjs-reader.spreadMode": {
-            "type": "string",
-            "default": "none",
-            "description": "View spread mode",
-            "scope": "workspace"
-          },
-          "pdfjs-reader.outlineSize": {
-            "type": "string",
-            "default": "none",
-            "description": "Outline pane size",
-            "scope": "workspace"
-          }
-        }
-      }
-    ],
     "customEditors": [
       {
         "viewType": "pdfjsReader.pdfReader",

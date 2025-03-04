@@ -109,11 +109,6 @@ export class Viewer {
     }
 
     public async load({ document, defaults }: LoadConfig) {
-        if (defaults.outlineSize) {
-            this.outlineSplit.style.display = "";
-            this.outlineSize = defaults.outlineSize;
-        }
-
         const pdf = await pdfjsLib.getDocument({
             ...document,
             cMapUrl: CMAP_URL,
@@ -127,6 +122,11 @@ export class Viewer {
         this.outlinePane.setDocument(pdf);
 
         this.history.initialize({ fingerprint: document.url });
+
+        this.outlineSplit.style.display = "";
+        if (defaults.outlineSize) {
+            this.outlineSize = defaults.outlineSize;
+        }
 
         this.eventBus.on('pagesloaded', () => {
             if (defaults.pageNumber) {

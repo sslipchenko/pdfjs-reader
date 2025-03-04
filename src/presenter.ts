@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { PdfDocument } from './document';
 import { Disposable } from './dispose';
+import { PdfDocument } from './document';
 
 export type SpreadMode = 'none' | 'odd' | 'even';
 
@@ -28,9 +28,30 @@ export interface FindState {
     }
 }
 
+export interface ViewState {
+    spreadMode?: SpreadMode;
+    scrollMode?: ScrollMode;
+    zoomMode?: ZoomMode;
+    outlineSize?: string;
+}
+
+export interface DocumentState {
+    pageNumber?: number;
+}
+
 export class PdfPresenter extends Disposable {
     private static _classicHtml: string | undefined;
     private static _vscodeHtml: string | undefined;
+
+    private static readonly DOCUMENT_STATE = "pdfjs-reader.document";
+    private static readonly VIEW_STATE = "pdfjs-reader.view";
+    private static readonly DEFAULT_VIEW_STATE: ViewState = {
+        spreadMode: 'none',
+        scrollMode: 'vertical',
+        zoomMode: 'auto',
+        outlineSize: '200px'
+    };
+    private static readonly FIND_STATE = 'pdfjs-reader.find';
 
     constructor(
         private readonly _context: vscode.ExtensionContext,
@@ -43,18 +64,16 @@ export class PdfPresenter extends Disposable {
         webviewPanel.webview.onDidReceiveMessage(e => this.onMessage(e));
 
         const onReady = webviewPanel.webview.onDidReceiveMessage(e => {
-            const configuration = this.getConfiguration();
+            const documentState = this._context.workspaceState.get<Record<string, DocumentState>>(PdfPresenter.DOCUMENT_STATE, {});
+            const viewState = this._context.workspaceState.get<ViewState>(PdfPresenter.VIEW_STATE, PdfPresenter.DEFAULT_VIEW_STATE);
 
             this.postMessage('open', {
                 document: { url: webviewPanel.webview.asWebviewUri(document.dataFile).toString() },
                 cMapUrl: this.resolveAsUri('lib', 'web', 'cmaps'),
                 standardFontDataUrl: this.resolveAsUri('lib', 'web', 'standard_fonts'),
                 defaults: {
-                    pageNumber: (this.getConfiguration(true).get("pageNumber", {}) as Record<string, number>)[this.document.uri.fsPath] ?? 1,
-                    zoomMode: configuration.get("zoomMode") as string,
-                    scrollMode: configuration.get("scrollMode") as string,
-                    spreadMode: configuration.get("spreadMode") as string,
-                    outlineSize: configuration.get("outlineSize") as string
+                    pageNumber: documentState[this.document.uri.fsPath]?.pageNumber ?? 1,
+                    ...viewState
                 }
             });
 
@@ -115,8 +134,6 @@ export class PdfPresenter extends Disposable {
         this.postMessage('view', options);
     }
 
-    private static readonly FIND_STATE = 'pdfjs-reader.find';
-
     find() {
         const findState = this._context.workspaceState.get<FindState>(PdfPresenter.FIND_STATE, {
             query: '', options: {}
@@ -150,31 +167,32 @@ export class PdfPresenter extends Disposable {
                 this._onDidChange.fire({ presenter: this });
 
                 if (message.body.pages?.current) {
-                    const configuration = this.getConfiguration(true);
-                    const current = configuration.get("pageNumber", {});
-                    configuration.update("pageNumber",
-                        { ...current, [this.document.uri.fsPath]: this.status?.pages?.current },
-                        vscode.ConfigurationTarget.Workspace);
+                    const documentState = this._context.workspaceState.get<Record<string, DocumentState>>(PdfPresenter.DOCUMENT_STATE, {});
+                    this._context.workspaceState.update(PdfPresenter.DOCUMENT_STATE,
+                        { ...documentState, [this.document.uri.fsPath]: { pageNumber: this.status?.pages?.current } });
                 }
 
-                if (message.body.zoomMode) {
-                    this.getConfiguration().update("zoomMode", message.body.zoomMode,
-                        vscode.ConfigurationTarget.Workspace);
+                const viewState = this._context.workspaceState.get<ViewState>(PdfPresenter.VIEW_STATE, PdfPresenter.DEFAULT_VIEW_STATE);
+                let newState = viewState;
+
+                if (message.body.zoomMode && viewState.zoomMode !== message.body.zoomMode) {
+                    newState = { ...newState, zoomMode: message.body.zoomMode };
                 }
 
-                if (message.body.scrollMode) {
-                    this.getConfiguration().update("scrollMode", message.body.scrollMode,
-                        vscode.ConfigurationTarget.Workspace);
+                if (message.body.scrollMode && viewState.scrollMode !== message.body.scrollMode) {
+                    newState = { ...newState, scrollMode: message.body.scrollMode };
                 }
 
-                if (message.body.spreadMode) {
-                    this.getConfiguration().update("spreadMode", message.body.spreadMode,
-                        vscode.ConfigurationTarget.Workspace);
+                if (message.body.spreadMode && viewState.spreadMode !== message.body.spreadMode) {
+                    newState = { ...newState, spreadMode: message.body.spreadMode };
                 }
 
-                if (message.body.outlineSize) {
-                    this.getConfiguration().update("outlineSize", message.body.outlineSize,
-                        vscode.ConfigurationTarget.Workspace);
+                if (message.body.outlineSize && viewState.outlineSize !== message.body.outlineSize) {
+                    newState = { ...newState, outlineSize: message.body.outlineSize };
+                }
+
+                if (viewState !== newState) {
+                    this._context.workspaceState.update(PdfPresenter.VIEW_STATE, newState);
                 }
 
                 break;
@@ -182,10 +200,6 @@ export class PdfPresenter extends Disposable {
                 this._context.workspaceState.update(PdfPresenter.FIND_STATE, message.body);
                 break;
         }
-    }
-
-    private getConfiguration(document?: boolean) {
-        return vscode.workspace.getConfiguration("pdfjs-reader", document ? this.document.uri : null);
     }
 
     private resolveAsUri(...p: string[]): vscode.Uri {
