@@ -42,6 +42,7 @@ export interface DocumentState {
 export class PdfPresenter extends Disposable {
     private static _classicHtml: string | undefined;
     private static _vscodeHtml: string | undefined;
+    private isNewUI = true;
 
     private static readonly DOCUMENT_STATE = "pdfjs-reader.document";
     private static readonly VIEW_STATE = "pdfjs-reader.view";
@@ -58,6 +59,8 @@ export class PdfPresenter extends Disposable {
         readonly document: PdfDocument,
         readonly webviewPanel: vscode.WebviewPanel) {
         super();
+
+        this.isNewUI = vscode.workspace.getConfiguration('pdfjsReader.viewer').get('ui') !== 'classic';
 
         this.getHtmlForWebview().then(html => webviewPanel.webview.html = html);
 
@@ -206,8 +209,6 @@ export class PdfPresenter extends Disposable {
         return this.webviewPanel.webview.asWebviewUri(vscode.Uri.joinPath(
             this._context.extensionUri, ...p));
     }
-
-    private isNewUI = true;
 
     private async getHtmlForWebview(): Promise<string> {
         if (this.isNewUI) {

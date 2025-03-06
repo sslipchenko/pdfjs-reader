@@ -102,6 +102,23 @@
         "category": "Reader"
       }
     ],
+    "configuration": [
+      {
+        "id": "pdfjsReader.viewer",
+        "title": "PDF.js Viewer Settings",
+        "properties": {
+          "pdfjsReader.viewer.ui": {
+            "type": "string",
+            "enum": [
+              "new",
+              "classic"
+            ],
+            "default": "new",
+						"description": "PDF.js Viewer UI"
+          }
+        }
+      }
+    ],
     "customEditors": [
       {
         "viewType": "pdfjsReader.pdfReader",
