@@ -84,7 +84,6 @@ export class Viewer {
 
         this.outlineSplit.addEventListener("vsc-split-layout-change", ({ detail }) => {
             this.outlineSplit.handlePosition = `${detail.position}px`;
-            this.eventBus.dispatch('outlinelayoutchanged', {});
         });
 
         this.viewerPane = document.getElementById("viewerPane") as HTMLDivElement;
@@ -124,9 +123,7 @@ export class Viewer {
         this.history.initialize({ fingerprint: document.url });
 
         this.outlineSplit.style.display = "";
-        if (defaults.outlineSize) {
-            this.outlineSize = defaults.outlineSize;
-        }
+        this.outlineSize = defaults.outlineSize ?? '100px';
 
         this.eventBus.on('pagesloaded', () => {
             if (defaults.pageNumber) {
@@ -155,12 +152,29 @@ export class Viewer {
         this.findPane.show(query, options);
     }
 
+    private _outlineSize!: string;
+
     public get outlineSize() {
-        return this.outlineSplit.handlePosition!;
+        return this._outlineSize;
     }
 
     public set outlineSize(size: string) {
-        this.outlineSplit.handlePosition = size;
+        if (this._outlineSize !== size) {
+            if (size.startsWith('-')) {
+                this.outlineSplit.handlePosition = '0px';
+                this.outlinePane.hide();
+            } else {
+                this.outlineSplit.handlePosition = size;
+                this.outlinePane.show();
+            }
+
+            if (this._outlineSize) {
+                this._outlineSize = size;
+                this.eventBus.dispatch('outlinelayoutchanged', {});
+            } else {
+                this._outlineSize = size;
+            }
+        }
     }
 
     public get spreadMode() {

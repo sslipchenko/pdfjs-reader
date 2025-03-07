@@ -121,4 +121,12 @@ export class OutlinePane {
 
         return this._destHashToPageNumber;
     }
+
+    show() {
+        this.outlinePane.style.display = '';
+    }
+
+    hide() {
+        this.outlinePane.style.display = 'none';
+    }
 }

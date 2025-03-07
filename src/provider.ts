@@ -4,6 +4,7 @@ import { disposeAll } from './dispose';
 import { PdfDocument } from './document';
 import { PdfPresenter, PdfPresenterCollection, Status } from './presenter';
 import { NavigationStatusBarItems, ZoomStatusBarItems, RotationStatusBarItems, SpreadStatusBarItems, ScrollStatusBarItems } from './statusbar';
+import { ViewStatusBarItems } from './statusbar/view';
 
 export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
     private static readonly viewType = 'pdfjsReader.pdfReader';
@@ -20,6 +21,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
             }));
     }
 
+    private viewStatusBarItems: ViewStatusBarItems;
     private navigationStatusBarItems: NavigationStatusBarItems;
     private zoomStatusBarItems: ZoomStatusBarItems;
     private rotationStatusBarItems: RotationStatusBarItems;
@@ -27,6 +29,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
     private scrollStatusBarItems: ScrollStatusBarItems;
 
     constructor(private readonly _context: vscode.ExtensionContext) {
+        this.viewStatusBarItems = new ViewStatusBarItems(_context);
         this.navigationStatusBarItems = new NavigationStatusBarItems(_context);
         this.zoomStatusBarItems = new ZoomStatusBarItems(_context);
         this.rotationStatusBarItems = new RotationStatusBarItems(_context);
@@ -107,6 +110,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
 
     private updateStatusBar({ presenter }: { readonly presenter: PdfPresenter; }) {
         if (presenter.status) {
+            this.viewStatusBarItems.show(presenter);
             this.navigationStatusBarItems.show(presenter);
             this.zoomStatusBarItems.show(presenter);
             this.rotationStatusBarItems.show(presenter);
@@ -115,6 +119,7 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
         }
 
         if (!this.presenters.active) {
+            this.viewStatusBarItems.hide();
             this.navigationStatusBarItems.hide();
             this.zoomStatusBarItems.hide();
             this.rotationStatusBarItems.hide();

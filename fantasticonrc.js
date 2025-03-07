@@ -19,5 +19,8 @@ module.exports = {
         "page-last": 0xE00D,
         "page-prev": 0xE00E,
         "page-next": 0xE00F,
+        "view-layers": 0xE010,
+        "view-outline": 0xE011,
+        "view-thumbnail": 0xE012,
     }
 }

@@ -132,9 +132,13 @@ export class PdfPresenter extends Disposable {
         spreadMode?: SpreadMode;
         scrollMode?: ScrollMode;
         zoomMode?: { scale?: ZoomMode; steps?: number };
-        pagesRotation?: { delta: number }
+        pagesRotation?: { delta: number };
     }) {
         this.postMessage('view', options);
+    }
+
+    toggle(options: { sidebar?: 'outline' }) {
+        this.postMessage('toggle', options);
     }
 
     find() {

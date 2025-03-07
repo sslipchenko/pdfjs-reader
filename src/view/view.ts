@@ -46,6 +46,9 @@ window.addEventListener('message', (e) => {
       case 'view':
          onView(body);
          break;
+      case 'toggle':
+         onToggle(body);
+         break;
       case 'find':
          onFind(body);
          break;
@@ -102,6 +105,14 @@ const onView = ({
       if (pagesRotation.delta) {
          viewer.rotation += pagesRotation.delta;
       }
+   }
+}
+
+const onToggle = (options: { sidebar?: 'outline'}) => {
+   switch(options.sidebar) {
+      case 'outline':
+         viewer.outlineSize = `${-parseInt(viewer.outlineSize)}px`;
+         break;
    }
 }
 

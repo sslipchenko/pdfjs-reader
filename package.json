@@ -100,6 +100,11 @@
         "command": "pdfjsReader.find",
         "title": "Find",
         "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.toggleOutline",
+        "title": "Toggle Outline",
+        "category": "Reader"
       }
     ],
     "configuration": [
@@ -235,6 +240,27 @@
         "default": {
           "fontPath": "dist/icons.woff2",
           "fontCharacter": "\\E00F"
+        }
+      },
+      "pdfjs-reader-view-layers": {
+        "description": "View Layers",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E010"
+        }
+      },
+      "pdfjs-reader-view-outline": {
+        "description": "View Outline",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E011"
+        }
+      },
+      "pdfjs-reader-view-thumbnail": {
+        "description": "View Thumbnail",
+        "default": {
+          "fontPath": "dist/icons.woff2",
+          "fontCharacter": "\\E012"
         }
       }
     },
