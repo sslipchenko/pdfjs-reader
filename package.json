@@ -105,6 +105,11 @@
         "command": "pdfjsReader.toggleOutline",
         "title": "Toggle Outline",
         "category": "Reader"
+      },
+      {
+        "command": "pdfjsReader.highlightSelection",
+        "title": "Highlight",
+        "category": "Reader"
       }
     ],
     "configuration": [
@@ -120,6 +125,50 @@
             ],
             "default": "new",
 						"description": "PDF.js Viewer UI"
+          },
+          "pdfjsReader.viewer.highlightColors": {
+            "type": "object",
+            "description": "Highlight Colors",
+            "properties": {
+              "yellow": {
+                "type": "string",
+                "format": "color-hex",
+                "default": "#FFFF98",
+                "description": "Yellow"
+              },
+              "green": {
+                "type": "string",
+                "format": "color-hex",
+                "default": "#53FFBC",
+                "description": "Green"
+              },
+              "blue": {
+                "type": "string",
+                "format": "color-hex",
+                "default": "#80EBFF",
+                "description": "Blue"
+              },
+              "pink": {
+                "type": "string",
+                "format": "color-hex",
+                "default": "#FFCBE6",
+                "description": "Pink"
+              },
+              "red": {
+                "type": "string",
+                "format": "color-hex",
+                "default": "#FF4F5F",
+                "description": "Red"
+              }
+            },
+            "additionalProperties": false,
+            "default": {
+              "yellow": "#FFFF98",
+              "green": "#53FFBC",
+              "blue": "#80EBFF",
+              "pink": "#FFCBE6",
+              "red": "#FF4F5F"
+            }
           }
         }
       }
@@ -312,16 +361,32 @@
         "key": "ctrl+f",
         "mac": "cmd+f",
         "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
+      },
+      {
+        "command": "pdfjsReader.highlightSelection",
+        "key": "ctrl+h",
+        "mac": "ctrl+cmd+h",
+        "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'"
       }
-    ]
+    ],
+    "menus": {
+      "webview/context": [
+        {
+          "command": "pdfjsReader.highlightSelection",
+          "when": "resourceExtname == '.pdf' && activeCustomEditorId == 'pdfjsReader.pdfReader'",
+          "group": "1_modification"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run build",
-    "prebuild": "yarn run copy-libs && yarn run generate-font && yarn run copy-files",
+    "prebuild": "yarn run copy-libs && yarn run generate-font && yarn run copy-files && yarn run copy-icons",
     "build": "tsc -b ./",
-    "prewatch": "yarn run generate-font && yarn run copy-files",
+    "prewatch": "yarn run generate-font && yarn run copy-files && yarn run copy-icons",
     "watch": "tsc -w -b ./",
     "generate-font": "fantasticon",
+    "copy-icons": "copyfiles ./icons/highlight/*.svg ./dist",
     "copy-files": "copyfiles -u 2 ./src/view/*.{css,html} ./dist/view",
     "copy-libs": "yarn run copy-pdfjs && yarn run copy-vscode",
     "copy-pdfjs": "copyfiles -u 2 './node_modules/pdfjs-dist/{build,cmaps,standard_fonts,image_decoders,web}/**/*' ./dist/view",

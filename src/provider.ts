@@ -1,4 +1,4 @@
-import path from 'path';
+import path, { resolve } from 'path';
 import * as vscode from 'vscode';
 import { disposeAll } from './dispose';
 import { PdfDocument } from './document';
@@ -38,6 +38,9 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
 
         this._context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.find",
             () => { this.presenters.active?.find(); }));
+
+        this._context.subscriptions.push(vscode.commands.registerCommand("pdfjsReader.highlightSelection",
+            this.highlightSelection, this));
     }
 
     async openCustomDocument(uri: vscode.Uri, openContext: { backupId?: string }, _token: vscode.CancellationToken): Promise<PdfDocument> {
@@ -126,5 +129,62 @@ export class PdfProvider implements vscode.CustomEditorProvider<PdfDocument> {
             this.spreadStatusBarItems.hide();
             this.scrollStatusBarItems.hide();
         }
+    }
+
+    private async highlightSelection() {
+        if (this.presenters.active) {
+            const selected = await this.showColorPick("Highlight",
+                this._context.workspaceState.get<string>("pdfjs-reader.highlight"));
+            if (selected) {
+                const palette = vscode.workspace.getConfiguration("pdfjsReader.viewer")
+                    .get<Record<string, string>>("highlightColors");
+                this.presenters.active.highlight(selected.id ? palette![selected.id] : undefined);
+                this._context.workspaceState.update("pdfjs-reader.highlight", selected.id);
+            }
+        }
+    }
+
+    private async showColorPick(title: string, recent: string | undefined) {
+        const iconPath = (color: string): vscode.IconPath => {
+            const uri = vscode.Uri.joinPath(this._context.extensionUri, 'icons', 'highlight', `${color}.svg`);
+            return { dark: uri, light: uri };
+        }
+
+        const colorItems: Array<vscode.QuickPickItem & { id: string | undefined }> = [
+            { id: 'yellow', label: 'Yellow', iconPath: iconPath('yellow') },
+            { id: 'green', label: 'Green', iconPath: iconPath('green') },
+            { id: 'blue', label: 'Blue', iconPath: iconPath('blue') },
+            { id: 'pink', label: 'Pink', iconPath: iconPath('pink') },
+            { id: 'red', label: 'Red', iconPath: iconPath('red') },
+            { id: undefined, label: 'None', iconPath: new vscode.ThemeIcon("circle-slash") }
+        ];
+
+        const disposables: vscode.Disposable[] = [];
+
+        try {
+            return await new Promise<(vscode.QuickPickItem & { id: string | undefined }) | undefined>((resolve) => {
+                const recentItem = colorItems.find(i => i.id === recent);
+                const colorPick = vscode.window.createQuickPick<vscode.QuickPickItem & { id: string | undefined }>();
+                colorPick.items = colorItems;
+                colorPick.activeItems = recentItem ? [recentItem] : [];
+
+                disposables.push(
+                    colorPick.onDidChangeSelection(items => {
+                        resolve(items[0]);
+                        colorPick.hide();
+                    }),
+                    colorPick.onDidHide(() => {
+                        resolve(undefined);
+                        colorPick.dispose();
+                    })
+                );
+
+                colorPick.show();
+            })
+        } finally {
+            disposables.forEach(d => d.dispose());
+        }
+
+
     }
 }

@@ -149,6 +149,10 @@ export class PdfPresenter extends Disposable {
         this.postMessage('find', findState);
     }
 
+    highlight(color: string | undefined) {
+        this.postMessage('highlight', { color });
+    }
+
     private _requestId = 1;
     private readonly _callbacks = new Map<number, (response: any) => void>();
 
@@ -216,7 +220,13 @@ export class PdfPresenter extends Disposable {
 
     private async getHtmlForWebview(): Promise<string> {
         if (this.isNewUI) {
+            const highlightColors =
+                Object.entries(vscode.workspace.getConfiguration("pdfjsReader.viewer").get("highlightColors") as object)
+                    .map(([name, value]) => `${name}=${value}`)
+                    .join(",")
+
             return (await this.getViewHtml())
+                .replace('${highlightColors}', highlightColors)
                 .replaceAll("./", this.resolveAsUri('dist', 'view/').toString());
         } else {
             return (await this.getViewHtml())

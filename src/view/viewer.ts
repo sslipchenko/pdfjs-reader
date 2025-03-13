@@ -1,6 +1,7 @@
 import { VscodeSplitLayout } from "@vscode-elements/elements/dist/main.js";
 import { OutlinePane } from "./outline.js";
 import { FindOptions, FindPane } from "./find.js";
+import { AnnotationManager } from "./annotations.js"
 
 const CMAP_URL = "./cmaps/";
 const CMAP_PACKED = true;
@@ -42,6 +43,7 @@ export class Viewer {
     private readonly viewerPane: HTMLDivElement;
     private readonly outlinePane: OutlinePane;
     private readonly findPane: FindPane;
+    private readonly annotationManager: AnnotationManager;
 
     constructor() {
         this.eventBus = new pdfjsViewer.EventBus();
@@ -65,6 +67,10 @@ export class Viewer {
             linkService: this.linkService
         });
 
+        this.annotationManager = new AnnotationManager({
+            eventBus: this.eventBus
+        });
+
         this.container = document.getElementById("viewerContainer") as HTMLDivElement;
 
         this.pdfViewer = new pdfjsViewer.PDFViewer({
@@ -73,11 +79,13 @@ export class Viewer {
             linkService: this.linkService,
             findController: this.findController,
             scriptingManager: this.scriptingManager,
+            annotationEditorHighlightColors: document.querySelector<HTMLMetaElement>("meta[name='highlightColors']")!.content
         });
 
         this.linkService.setViewer(this.pdfViewer);
         this.linkService.setHistory(this.history);
         this.scriptingManager.setViewer(this.pdfViewer);
+        this.annotationManager.setViewer(this.pdfViewer);
 
         this.outlineSplit = document.getElementById("outlineSplit") as VscodeSplitLayout;
         this.outlineSplit['_handleMouseMove'] = patchedHandleMouseMove.bind(this.outlineSplit);
@@ -227,6 +235,10 @@ export class Viewer {
 
     public navigate(action: string) {
         this.linkService.executeNamedAction(action);
+    }
+
+    public highlight(color: string | undefined) {
+        this.annotationManager.highlight(color);
     }
 
     public on(eventName: string, listener: Function, options?: Object) {

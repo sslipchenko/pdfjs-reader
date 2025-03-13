@@ -55,6 +55,9 @@ window.addEventListener('message', (e) => {
       case 'navigate':
          onNavigate(body);
          break;
+      case 'highlight':
+         onHighlight(body);
+         break;
       case 'status':
          onStatus();
          break;
@@ -108,8 +111,8 @@ const onView = ({
    }
 }
 
-const onToggle = (options: { sidebar?: 'outline'}) => {
-   switch(options.sidebar) {
+const onToggle = (options: { sidebar?: 'outline' }) => {
+   switch (options.sidebar) {
       case 'outline':
          viewer.outlineSize = `${-parseInt(viewer.outlineSize)}px`;
          break;
@@ -159,6 +162,10 @@ const onNavigate = ({
       }
    }
 }
+
+const onHighlight = ({ color }: { color: string | undefined }) => {
+   viewer.highlight(color);
+};
 
 const onStatus = () => {
    const status = {
